@@ -40,6 +40,7 @@ impl SubnetState {
                 self.validators[i].bonds = 0;
                 self.validators[i].reward = 0;
                 self.validators[i].owner = owner;
+                break;
             }
         }
     }
@@ -50,6 +51,7 @@ impl SubnetState {
                 self.miners[i].id = i as u8 + 1;
                 self.miners[i].stake = 0;
                 self.miners[i].owner = owner;
+                break;
             }
         }
     }

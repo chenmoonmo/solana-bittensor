@@ -23,6 +23,18 @@ pub mod solana_bittensor {
     pub fn mint(ctx: Context<MintTao>) -> Result<()> {
         instructions::mint_tao(ctx)
     }
+
+    // 注册子网验证人
+    pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> Result<()> {
+        instructions::initialize_subnet_validator(ctx)
+    }
+
+    // 注册子网矿工
+    pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()> {
+        instructions::initialize_subnet_miner(ctx)
+    }
+
+    
 }
 
 #[derive(Accounts)]

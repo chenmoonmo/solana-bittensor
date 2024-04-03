@@ -139,4 +139,66 @@ describe("solana-bittensor", () => {
     console.log("Subnet state: ", subnet);
     console.log("Bittensor state: ", bittensor);
   });
+
+  it("Is initlialized Validator", async () => {
+    [validator1PDA] = await anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("validator_state"),
+        subnet1PDA.toBuffer(),
+        user.publicKey.toBuffer(),
+      ],
+      program.programId
+    );
+
+    await program.methods
+      .initializeSubnetValidator()
+      .accounts({
+        validatorState: validator1PDA,
+        subnetState: subnet1PDA,
+        owner: user.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([user])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    const validator = await program.account.validatorState.fetch(validator1PDA);
+    const subnet = await program.account.subnetState.fetch(subnet1PDA);
+
+    console.log("Validator state: ", validator);
+    console.log("Subnet state: ", subnet);
+  });
+  
+  it("Is initlialized Miner", async () => {
+    [miner1PDA] = await anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("miner_state"),
+        subnet1PDA.toBuffer(),
+        user.publicKey.toBuffer(),
+      ],
+      program.programId
+    );
+
+    await program.methods
+      .initializeSubnetMiner()
+      .accounts({
+        minerState: miner1PDA,
+        subnetState: subnet1PDA,
+        owner: user.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([user])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    const miner = await program.account.minerState.fetch(miner1PDA);
+    const subnet = await program.account.subnetState.fetch(subnet1PDA);
+
+    console.log("miner state: ", miner);
+    console.log("Subnet state: ", subnet);
+  });
 });
