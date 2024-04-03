@@ -6,15 +6,18 @@ pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> R
     // 设置注册费用
     // 注册验证人时 燃烧代币
     // 验证人保护期初始化
-    
+
     let owner = ctx.accounts.owner.key();
-    let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
+
+    let validator_id = ctx
+        .accounts
+        .subnet_state
+        .load_mut()?
+        .create_validator(owner);
 
     let validator_state = &mut ctx.accounts.validator_state;
-
+    validator_state.id = validator_id;
     validator_state.owner = owner;
-
-    subnet_state.create_validator(owner);
 
     Ok(())
 }

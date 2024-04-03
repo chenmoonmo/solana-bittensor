@@ -32,10 +32,12 @@ impl SubnetState {
         self.epoch_start_timestamp = timestamp;
     }
 
-    pub fn create_validator(&mut self, owner: Pubkey) -> () {
+    pub fn create_validator(&mut self, owner: Pubkey) -> u8 {
+        let mut id = 0u8;
         for i in 0..MAX_VALIDATOR_NUMBER {
             if self.validators[i].id == 0 {
-                self.validators[i].id = i as u8 + 1;
+                id = i as u8 + 1;
+                self.validators[i].id = id;
                 self.validators[i].stake = 0;
                 self.validators[i].bonds = 0;
                 self.validators[i].reward = 0;
@@ -43,17 +45,22 @@ impl SubnetState {
                 break;
             }
         }
+        id
     }
 
-    pub fn create_miner(&mut self, owner: Pubkey) -> () {
+    pub fn create_miner(&mut self, owner: Pubkey) -> u8 {
+        let mut id = 0u8;
+
         for i in 0..MAX_MINER_NUMBER {
             if self.miners[i].id == 0 {
-                self.miners[i].id = i as u8 + 1;
+                id = i as u8 + 1;
+                self.miners[i].id = id;
                 self.miners[i].stake = 0;
                 self.miners[i].owner = owner;
                 break;
             }
         }
+        id
     }
 }
 

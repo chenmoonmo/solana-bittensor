@@ -9,11 +9,12 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
 
     let owner = ctx.accounts.owner.key();
 
-    let miner_state = &mut ctx.accounts.miner_state.load_init()?;
-    miner_state.owner = owner;
+    let miner_id = ctx.accounts.subnet_state.load_mut()?.create_miner(owner);
 
-    miner_state.owner = ctx.accounts.owner.key();
-    ctx.accounts.subnet_state.load_mut()?.create_miner(owner);
+    let miner_state = &mut ctx.accounts.miner_state.load_init()?;
+
+    miner_state.owner = owner;
+    miner_state.id = miner_id;
 
     Ok(())
 }
