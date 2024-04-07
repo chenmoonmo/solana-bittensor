@@ -38,6 +38,7 @@ pub mod solana_bittensor {
     }
     // 1. 注册主网验证人
     // 2. 给子网打分
+    
     // 3. 验证人质押
     pub fn subnet_validator_stake(ctx: Context<SubnetValidatorStake>, amount: u64) -> Result<()> {
         instructions::subnet_validator_stake(ctx, amount)
@@ -47,6 +48,7 @@ pub mod solana_bittensor {
         instructions::miner_stake(ctx, amount)
     }
     // 5. 结束主网周期
+
     // 6. 结束子网周期
 }
 
