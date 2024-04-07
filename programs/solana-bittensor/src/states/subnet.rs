@@ -12,7 +12,8 @@ pub struct SubnetState {
 
     pub epoch_start_timestamp: i64,
 
-    pub total_stake: u64,
+    pub miner_total_stake: u64,
+    pub validator_total_stake: u64,
     pub stake: u64,
     pub distribute_reward: u64,
 
@@ -61,6 +62,26 @@ impl SubnetState {
             }
         }
         id
+    }
+
+    pub fn miner_add_stake(&mut self, miner_id: u8, amount: u64) -> () {
+        for i in 0..MAX_MINER_NUMBER {
+            if self.miners[i].id == miner_id {
+                self.miners[i].stake += amount;
+                break;
+            }
+        }
+        self.miner_total_stake += amount;
+    }
+
+    pub fn validator_add_stake(&mut self, validator_id: u8, amount: u64) -> () {
+        for i in 0..MAX_VALIDATOR_NUMBER {
+            if self.validators[i].id == validator_id {
+                self.validators[i].stake += amount;
+                break;
+            }
+        }
+        self.validator_total_stake += amount;
     }
 }
 

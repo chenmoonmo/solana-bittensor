@@ -59,6 +59,7 @@ pub struct InitializeSubnet<'info> {
         token::authority = subnet_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
+    
     #[account(mut)]
     pub owner: Signer<'info>,
     pub system_program: Program<'info, System>,

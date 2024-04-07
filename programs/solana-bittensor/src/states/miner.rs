@@ -33,4 +33,8 @@ impl MinerState {
             }
         }
     }
+
+    pub fn add_stake(&mut self, amount: u64) -> () {
+        self.stake += amount;
+    }
 }
