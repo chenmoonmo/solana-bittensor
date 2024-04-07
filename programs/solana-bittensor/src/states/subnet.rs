@@ -110,8 +110,10 @@ pub struct MinerInfo {
     pub owner: Pubkey,
     pub id: u8,
     pub stake: u64,
+    // 待提取奖励
+    pub reward: u64,
 }
 
 impl MinerInfo {
-    pub const LEN: usize = 8 + 32 + 1 + 8;
+    pub const LEN: usize = 8 + 32 + 1 + 8 + 8;
 }

@@ -20,6 +20,7 @@ describe("solana-bittensor", () => {
   let taoMint: anchor.web3.PublicKey;
   let taoStake: anchor.web3.PublicKey;
   let subnetTaoStake: anchor.web3.PublicKey;
+  let userTaoATA: anchor.web3.PublicKey;
 
   it("Is initialized bittensor!", async () => {
     user = anchor.web3.Keypair.generate();
@@ -71,7 +72,7 @@ describe("solana-bittensor", () => {
 
     console.log("State: ", state);
 
-    const userTaoATA = await token.createAssociatedTokenAccount(
+    userTaoATA = await token.createAssociatedTokenAccount(
       connection,
       user,
       taoMint,
@@ -153,10 +154,14 @@ describe("solana-bittensor", () => {
     await program.methods
       .initializeSubnetValidator()
       .accounts({
+        bittensorState: bittensorPDA,
+        taoMint: taoMint,
+        userTaoAta: userTaoATA,
         validatorState: validator1PDA,
         subnetState: subnet1PDA,
         owner: user.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: token.TOKEN_PROGRAM_ID,
       })
       .signers([user])
       .rpc()
@@ -184,6 +189,9 @@ describe("solana-bittensor", () => {
     await program.methods
       .initializeSubnetMiner()
       .accounts({
+        bittensorState: bittensorPDA,
+        taoMint: taoMint,
+        userTaoAta: userTaoATA,
         minerState: miner1PDA,
         subnetState: subnet1PDA,
         owner: user.publicKey,

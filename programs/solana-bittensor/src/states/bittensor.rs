@@ -82,6 +82,40 @@ pub struct SubnetInfo {
 
 impl SubnetInfo {
     pub const LEN: usize = 1 + 8 + 8 + 32 + WeightInfo::LEN * BITTENSOR_VALIDATOR_MAX_NUMBER;
+    // 计算权重
+    pub fn calculate_weight(
+        &self,
+        validators: [BittensorValidatorInfo; BITTENSOR_VALIDATOR_MAX_NUMBER],
+    ) -> u8 {
+        let mut total_stake = 0u64;
+
+        for i in 0..SUBNET_MAX_NUMBER {
+            let validator = validators
+                .iter()
+                .find(|v| v.id == self.weights[i].validator_id);
+            if let Some(validator) = validator {
+                total_stake += validator.stake;
+            }
+        }
+
+        let mut weight = 0u8;
+
+        for i in 0..SUBNET_MAX_NUMBER {
+            let validator = validators
+                .iter()
+                .find(|v| v.id == self.weights[i].validator_id);
+            if let Some(validator) = validator {
+                weight = validator
+                    .stake
+                    .checked_mul(100)
+                    .unwrap()
+                    .checked_div(total_stake)
+                    .unwrap() as u8;
+            }
+        }
+
+        weight
+    }
 }
 
 #[zero_copy(unsafe)]

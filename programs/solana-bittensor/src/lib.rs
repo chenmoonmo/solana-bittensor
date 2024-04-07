@@ -48,7 +48,7 @@ pub mod solana_bittensor {
         instructions::miner_stake(ctx, amount)
     }
     // 5. 结束主网周期
-
+    
     // 6. 结束子网周期
 }
 
