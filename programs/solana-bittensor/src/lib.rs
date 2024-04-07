@@ -34,7 +34,15 @@ pub mod solana_bittensor {
         instructions::initialize_subnet_miner(ctx)
     }
 
-    
+    pub fn set_miner_weight(ctx: Context<SetMinerWeight>, weight: u64) -> Result<()> {
+        instructions::set_miner_weight(ctx, weight)
+    }
+
+    // 1. 注册主网验证人
+    // 2. 给子网打分
+    // 3. 验证人质押
+    // 4. 矿工质押
+
 }
 
 #[derive(Accounts)]
