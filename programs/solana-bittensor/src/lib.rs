@@ -33,9 +33,9 @@ pub mod solana_bittensor {
         instructions::initialize_subnet_miner(ctx)
     }
 
-    pub fn set_miner_weight(ctx: Context<SetMinerWeight>, weight: u64) -> Result<()> {
-        instructions::set_miner_weight(ctx, weight)
-    }
+    // pub fn set_miner_weight(ctx: Context<SetMinerWeight>, weight: u64) -> Result<()> {
+    //     instructions::set_miner_weight(ctx, weight)
+    // }
     // 1. 注册主网验证人
     // 2. 给子网打分
 
@@ -51,8 +51,12 @@ pub mod solana_bittensor {
 
     // 6. 结束子网周期
 
-    pub fn test(ctx: Context<Test>, miner_ids: Vec<u64>, weights: Vec<u64>) -> Result<()> {
-        instructions::test(ctx, miner_ids, weights)
+    pub fn set_miner_weights(
+        ctx: Context<SetMinerWeights>,
+        miner_ids: Vec<u64>,
+        weights: Vec<u64>,
+    ) -> Result<()> {
+        instructions::set_miner_weights(ctx, miner_ids, weights)
     }
 }
 

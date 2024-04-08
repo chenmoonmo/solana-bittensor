@@ -5,11 +5,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
     let timestamp = Clock::get()?.unix_timestamp;
-
-    ctx.accounts
-        .subnet_state
-        .load_init()?
-        .update_epoch_start_timestamp(timestamp);
+    ctx.accounts.subnet_epoch.load_init()?.epoch_start_timestamp = timestamp;
 
     Ok(())
 }
@@ -36,10 +32,10 @@ pub struct InitializeSubnet<'info> {
         init,
         payer = owner,
         space = 10 * 1024,
-        seeds = [b"weights",subnet_state.key().as_ref()],
+        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
         bump
     )]
-    pub subnet_weights: AccountLoader<'info, SubnetWeightsState>,
+    pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
 
     // 系统奖励代币
     #[account(
@@ -59,7 +55,7 @@ pub struct InitializeSubnet<'info> {
         token::authority = subnet_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
-    
+
     #[account(mut)]
     pub owner: Signer<'info>,
     pub system_program: Program<'info, System>,
