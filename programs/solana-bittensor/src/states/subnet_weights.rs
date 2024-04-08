@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
 
 use crate::states::subnet::MAX_MINER_NUMBER;
+
+use super::{ValidatorInfo, MAX_VALIDATOR_NUMBER};
 // use crate::states::subnet::MAX_VALIDATOR_NUMBER;
 
 #[account(zero_copy(unsafe))]
@@ -12,25 +14,6 @@ pub struct SubnetWeightsState {
 }
 
 impl SubnetWeightsState {
-    // pub fn set_subnet_weight(&mut self, validator_id: u8, weight: u64) -> () {
-    //     // 如果已经存在 validator_id 的打分，则报错
-
-    //     for i in 0..MAX_VALIDATOR_NUMBER {
-    //         if self.subnet_weights[i].validator_id == validator_id {
-    //             // TODO: 报错
-    //             panic!("Validator {} has already been scored", validator_id);
-    //         }
-    //     }
-
-    //     for i in 0..MAX_VALIDATOR_NUMBER {
-    //         if self.subnet_weights[i].validator_id == 0 {
-    //             self.subnet_weights[i].validator_id = validator_id;
-    //             self.subnet_weights[i].weight = weight;
-    //             break;
-    //         }
-    //     }
-    // }
-
     pub fn set_miner_weight(&mut self, miner_id: u8, validator_id: u8, weight: u64) -> () {
         // 如果已经存在 validator_id 对 miner_id 的打分，则报错
         for i in 0..MAX_MINER_NUMBER {
@@ -53,6 +36,46 @@ impl SubnetWeightsState {
                 break;
             }
         }
+    }
+
+    pub fn get_miner_weights(
+        &self,
+        validators: [ValidatorInfo; MAX_VALIDATOR_NUMBER],
+        validator_total_stake: u64,
+    ) -> Vec<(u8, u64)> {
+        // 将 miners_weights reduce 为 Vec<(u8, u64)>
+        // 1. 遍历 miners_weights，如果 miner_id 不在 weights 中，则添加
+        // 2. 如果 miner_id 在 weights 中，则 weight += weight
+        // 2.2. weight 为 验证者的 质押数量 / 总质押数量 * weight
+        let mut weights: Vec<(u8, u64)> = vec![];
+        for i in 0..MAX_MINER_NUMBER {
+            if self.miners_weights[i].miner_id == 0 {
+                break;
+            }
+
+            let miner_id = self.miners_weights[i].miner_id;
+            let validator_id = self.miners_weights[i].validator_id;
+            let weight = self.miners_weights[i].weight;
+
+            let mut found = false;
+            for j in 0..weights.len() {
+                if weights[j].0 == miner_id {
+                    weights[j].1 +=
+                        weight * validators[validator_id as usize].stake / validator_total_stake;
+                    found = true;
+                    break;
+                }
+            }
+
+            if !found {
+                weights.push((
+                    miner_id,
+                    weight * validators[validator_id as usize].stake / validator_total_stake,
+                ));
+            }
+        }
+
+        weights
     }
 }
 

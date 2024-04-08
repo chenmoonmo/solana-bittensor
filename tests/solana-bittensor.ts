@@ -210,28 +210,59 @@ describe("solana-bittensor", () => {
     console.log("Subnet state: ", subnet);
   });
 
-  it("Is subnet validator set miner weight", async () => {
+  // it("Is subnet validator set miner weight", async () => {
+  //   await program.methods
+  //     .setMinerWeight(new anchor.BN(1000))
+  //     .accounts({
+  //       subnetState: subnet1PDA,
+  //       subnetWeights: subnet1WeightsPDA,
+  //       validatorState: validator1PDA,
+  //       minerState: miner1PDA,
+  //       owner: user.publicKey,
+  //       systemProgram: anchor.web3.SystemProgram.programId,
+  //     })
+  //     .signers([user])
+  //     .rpc()
+  //     .catch((err) => {
+  //       console.log("Error: ", err);
+  //     });
+
+  //   const miner = await program.account.minerState.fetch(miner1PDA);
+  //   const weights = await program.account.subnetWeightsState.fetch(
+  //     subnet1WeightsPDA
+  //   );
+
+  //   console.log("Miner state: ", miner);
+  //   console.log("Weights state: ", weights.minersWeights);
+  // });
+
+  it("Test", async () => {
     await program.methods
-      .setMinerWeight(new anchor.BN(1000))
+      .test([new anchor.BN(1)], [new anchor.BN(200)])
       .accounts({
         subnetState: subnet1PDA,
         subnetWeights: subnet1WeightsPDA,
-        minerState: miner1PDA,
+        validatorState: validator1PDA,
         owner: user.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
+      .remainingAccounts([
+        {
+          pubkey: miner1PDA,
+          isWritable: true,
+          isSigner: false,
+        },
+      ])
       .signers([user])
       .rpc()
       .catch((err) => {
         console.log("Error: ", err);
       });
 
-    const miner = await program.account.minerState.fetch(miner1PDA);
     const weights = await program.account.subnetWeightsState.fetch(
       subnet1WeightsPDA
     );
 
-    console.log("Miner state: ", miner);
     console.log("Weights state: ", weights.minersWeights);
   });
 });
