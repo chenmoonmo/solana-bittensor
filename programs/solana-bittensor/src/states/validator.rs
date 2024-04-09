@@ -19,4 +19,8 @@ impl ValidatorState {
     pub fn add_stake(&mut self, amount: u64) {
         self.stake += amount;
     }
+
+    pub fn remove_stake(&mut self, amount: u64) {
+        self.stake -= amount;
+    }
 }
