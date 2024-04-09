@@ -82,6 +82,10 @@ pub struct SubnetInfo {
 
 impl SubnetInfo {
     pub const LEN: usize = 1 + 8 + 8 + 32 + WeightInfo::LEN * BITTENSOR_VALIDATOR_MAX_NUMBER;
+
+    pub fn initialize_weights(&mut self) -> () {
+        self.weights = [WeightInfo::default(); BITTENSOR_VALIDATOR_MAX_NUMBER];
+    }
     // 计算权重
     pub fn calculate_weight(
         &self,

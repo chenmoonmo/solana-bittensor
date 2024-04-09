@@ -19,7 +19,7 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
             .unwrap();
 
         subnet.distribute_reward += reward_amount;
-        subnet.weights = [WeightInfo::default(); BITTENSOR_VALIDATOR_MAX_NUMBER];
+        subnet.initialize_weights();
     }
 
     Ok(())
