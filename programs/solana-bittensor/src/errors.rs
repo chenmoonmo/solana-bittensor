@@ -6,5 +6,7 @@ pub enum ErrorCode {
     NotEnoughStake,
     #[msg("Validator is exist.")]
     ValidatorExist,
+    #[msg("Total weight exceeds MAX_MINER_WEIGHT")]
+    TotalWeightExceedsMaxMinerWeight,
     
 }

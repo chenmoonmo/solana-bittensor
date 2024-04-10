@@ -10,6 +10,8 @@ pub const SUBNET_EPOCH_DURATION: i64 = 60 * 60 * 24;
 pub struct SubnetState {
     pub id: u8,
     pub stake: u64,
+    pub last_validator_id: i8,
+    pub last_miner_id: i8,
     pub miner_total_stake: u64,
     pub validator_total_stake: u64,
     pub distribute_reward: u64,
@@ -36,13 +38,14 @@ impl SubnetState {
         self.distribute_reward = 0;
         self.validators = validators;
         self.miners = miners;
+        self.last_miner_id = -1;
+        self.last_validator_id = -1;
     }
 
     pub fn create_validator(&mut self, owner: Pubkey) -> u8 {
-        let mut id = 0u8;
+        let id = (self.last_validator_id + 1) as u8;
         for i in 0..MAX_VALIDATOR_NUMBER {
             if self.validators[i].id == 0 {
-                id = i as u8 + 1;
                 self.validators[i].id = id;
                 self.validators[i].owner = owner;
                 break;
@@ -52,11 +55,9 @@ impl SubnetState {
     }
 
     pub fn create_miner(&mut self, owner: Pubkey) -> u8 {
-        let mut id = 0u8;
-
+        let id = (self.last_miner_id + 1) as u8;
         for i in 0..MAX_MINER_NUMBER {
             if self.miners[i].id == 0 {
-                id = i as u8 + 1;
                 self.miners[i].id = id;
                 self.miners[i].owner = owner;
                 break;

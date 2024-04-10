@@ -1,19 +1,18 @@
+use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
 
-pub const MAX_MINER_WEIGHT: u64 = 1000;
-
-pub fn set_miner_weights(
-    ctx: Context<SetMinerWeights>,
-    miner_ids: Vec<u64>,
-    weights: Vec<u64>,
-) -> Result<()> {
-    let subnet_epoch = &mut ctx.accounts.subnet_epoch.load_mut()?;
+pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u64>) -> Result<()> {
     let validator_id = ctx.accounts.validator_state.id;
-    // TODO: 限制总权重
-    // 如果已经打过分则 panic
-    // require!(total_weight <= MAX_MINER_WEIGHT, "Total weight exceeds MAX_MINER_WEIGHT");
-    subnet_epoch.set_miner_weights(validator_id, miner_ids, weights);
+    let sum_weights = weights.iter().sum::<u64>();
+    require!(
+        sum_weights <= MAX_MINER_WEIGHT,
+        ErrorCode::TotalWeightExceedsMaxMinerWeight
+    );
+    ctx.accounts
+        .subnet_epoch
+        .load_mut()?
+        .set_miner_weights(validator_id, weights);
     Ok(())
 }
 

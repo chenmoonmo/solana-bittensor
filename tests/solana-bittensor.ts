@@ -219,7 +219,7 @@ describe("solana-bittensor", () => {
 
   it("set_miner_weights", async () => {
     await program.methods
-      .setMinerWeights([new anchor.BN(1)], [new anchor.BN(200)])
+      .setMinerWeights([new anchor.BN(200), new anchor.BN(300)])
       .accounts({
         subnetState: subnet1PDA,
         subnetEpoch: subnet1WeightsPDA,
@@ -237,6 +237,6 @@ describe("solana-bittensor", () => {
       subnet1WeightsPDA
     );
 
-    console.log("Weights state: ", weights.validatorWeights[0]);
+    console.log("Weights state: ", weights);
   });
 });

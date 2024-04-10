@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
+pub mod errors;
 pub mod instructions;
 pub mod states;
-pub mod errors;
 
 use crate::instructions::*;
 
@@ -54,10 +54,9 @@ pub mod solana_bittensor {
 
     pub fn set_miner_weights(
         ctx: Context<SetMinerWeights>,
-        miner_ids: Vec<u64>,
-        weights: Vec<u64>,
+        weights: Vec<u64>
     ) -> Result<()> {
-        instructions::set_miner_weights(ctx, miner_ids, weights)
+        instructions::set_miner_weights(ctx, weights) 
     }
 }
 

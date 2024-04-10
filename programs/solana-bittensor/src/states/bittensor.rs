@@ -22,14 +22,6 @@ impl BittensorState {
         + SubnetInfo::LEN * SUBNET_MAX_NUMBER
         + BittensorValidatorInfo::LEN * BITTENSOR_VALIDATOR_MAX_NUMBER;
 
-    pub fn new() -> Self {
-        BittensorState {
-            epoch_start_timestamp: 0,
-            total_stake: 0,
-            subnets: [SubnetInfo::default(); SUBNET_MAX_NUMBER],
-            validators: [BittensorValidatorInfo::default(); BITTENSOR_VALIDATOR_MAX_NUMBER],
-        }
-    }
     pub fn update_epoch_start_timestamp(&mut self, timestamp: i64) -> () {
         self.epoch_start_timestamp = timestamp;
     }
