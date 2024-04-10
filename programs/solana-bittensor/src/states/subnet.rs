@@ -6,12 +6,12 @@ pub const SUBNET_EPOCH_DURATION: i64 = 60 * 60 * 24;
 
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct SubnetState {
     pub id: u8,
+    pub stake: u64,
     pub miner_total_stake: u64,
     pub validator_total_stake: u64,
-    pub stake: u64,
     pub distribute_reward: u64,
     pub validators: [ValidatorInfo; MAX_VALIDATOR_NUMBER],
     pub miners: [MinerInfo; MAX_MINER_NUMBER],
@@ -24,6 +24,19 @@ impl SubnetState {
         + 8
         + ValidatorInfo::LEN * MAX_VALIDATOR_NUMBER
         + MinerInfo::LEN * MAX_MINER_NUMBER;
+
+    pub fn initialize(&mut self, id: u8) -> () {
+        let validators = [ValidatorInfo::default(); MAX_VALIDATOR_NUMBER];
+        let miners = [MinerInfo::default(); MAX_MINER_NUMBER];
+
+        self.id = id;
+        self.stake = 0;
+        self.miner_total_stake = 0;
+        self.validator_total_stake = 0;
+        self.distribute_reward = 0;
+        self.validators = validators;
+        self.miners = miners;
+    }
 
     pub fn create_validator(&mut self, owner: Pubkey) -> u8 {
         let mut id = 0u8;

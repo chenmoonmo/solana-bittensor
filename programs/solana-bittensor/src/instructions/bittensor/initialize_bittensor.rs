@@ -18,7 +18,7 @@ pub struct InitializeBittensor<'info> {
     #[account(
         init,
         payer = owner,
-        space = 8 + BittensorState::LEN,
+        space = 10 * 1024,
         seeds = [b"bittensor"],
         bump
     )]
@@ -46,6 +46,7 @@ pub struct InitializeBittensor<'info> {
     pub tao_stake: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     pub owner: Signer<'info>,
+    
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
 }

@@ -13,7 +13,7 @@ pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> R
     // 验证人保护期初始化
 
     // TODO: 注册费用不足验证
-
+    
     let bump = ctx.bumps.bittensor_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
 

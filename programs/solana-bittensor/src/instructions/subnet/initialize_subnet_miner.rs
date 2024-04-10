@@ -13,7 +13,7 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
     // 矿工保护期初始化
 
     // TODO: 注册费用不足验证
-    
+
     let bump = ctx.bumps.bittensor_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
 
@@ -57,7 +57,7 @@ pub struct InitializeSubnetMiner<'info> {
 
     #[account(
         init,
-        space = 1024 * 10,
+        space = 10 * 1024,
         payer = owner,
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump

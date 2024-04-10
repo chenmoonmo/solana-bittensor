@@ -5,8 +5,14 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
     let timestamp = Clock::get()?.unix_timestamp;
-    ctx.accounts.subnet_epoch.load_init()?.epoch_start_timestamp = timestamp;
-
+    let owner = *ctx.accounts.owner.key;
+    let subnet_id = ctx
+        .accounts
+        .bittensor_state
+        .load_mut()?
+        .create_subnet(owner);
+    ctx.accounts.subnet_state.load_init()?.initialize(subnet_id);
+    ctx.accounts.subnet_epoch.load_init()?.initialize(timestamp);
     Ok(())
 }
 

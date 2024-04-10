@@ -29,6 +29,7 @@ describe("solana-bittensor", () => {
       user.publicKey,
       10 * anchor.web3.LAMPORTS_PER_SOL
     );
+
     const latestBlockHash = await connection.getLatestBlockhash();
 
     await connection.confirmTransaction({
@@ -37,17 +38,17 @@ describe("solana-bittensor", () => {
       signature: sig,
     });
 
-    [bittensorPDA] = await anchor.web3.PublicKey.findProgramAddressSync(
+    [bittensorPDA] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("bittensor")],
       program.programId
     );
 
-    [taoMint] = await anchor.web3.PublicKey.findProgramAddressSync(
+    [taoMint] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from(Buffer.from("tao")), bittensorPDA.toBuffer()],
       program.programId
     );
 
-    [taoStake] = await anchor.web3.PublicKey.findProgramAddressSync(
+    [taoStake] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from(Buffer.from("tao_stake")), bittensorPDA.toBuffer()],
       program.programId
     );
@@ -78,6 +79,8 @@ describe("solana-bittensor", () => {
       taoMint,
       user.publicKey
     );
+
+    console.log("User tao ATA: ", userTaoATA);
 
     await program.methods
       .mint()

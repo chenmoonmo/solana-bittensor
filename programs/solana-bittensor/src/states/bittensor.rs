@@ -1,7 +1,5 @@
 use anchor_lang::prelude::*;
 
-use super::{subnet, validator};
-
 pub const SUBNET_MAX_NUMBER: usize = 32;
 pub const BITTENSOR_VALIDATOR_MAX_NUMBER: usize = 32;
 pub const MAX_EPOCH_NUMBER: usize = 10;
@@ -36,15 +34,18 @@ impl BittensorState {
         self.epoch_start_timestamp = timestamp;
     }
 
-    pub fn create_subnet(&mut self, owner: Pubkey) -> () {
+    pub fn create_subnet(&mut self, owner: Pubkey) -> u8 {
+        let mut id = 0u8;
         for i in 0..SUBNET_MAX_NUMBER {
             if self.subnets[i].id == 0 {
-                self.subnets[i].id = i as u8 + 1;
+                id = i as u8 + 1;
+                self.subnets[i].id = id;
                 self.subnets[i].distribute_reward = 0;
                 self.subnets[i].stake = 0;
                 self.subnets[i].owner = owner;
             }
         }
+        id
     }
 
     pub fn create_bittensor_validator(&mut self, owner: Pubkey) -> () {
