@@ -18,20 +18,32 @@ pub fn subnet_validator_stake(ctx: Context<SubnetValidatorStake>, amount: u64) -
         amount,
     )?;
 
-    let miner_id = ctx.accounts.validator_state.id;
+    let subnet_id = ctx.accounts.subnet_state.load()?.id;
+    let validator_id = ctx.accounts.validator_state.id;
 
     ctx.accounts
         .subnet_state
         .load_mut()?
-        .validator_add_stake(miner_id, amount);
+        .validator_add_stake(validator_id, amount);
 
     ctx.accounts.validator_state.add_stake(amount);
+    
+    ctx.accounts
+        .bittensor_state
+        .load_mut()?
+        .validator_add_stake(validator_id, subnet_id, amount);
 
     Ok(())
 }
 
 #[derive(Accounts)]
 pub struct SubnetValidatorStake<'info> {
+    #[account(
+        mut,
+        seeds = [b"bittensor"],
+        bump,
+    )]
+    pub bittensor_state: AccountLoader<'info, BittensorState>,
     #[account(mut)]
     pub subnet_state: AccountLoader<'info, SubnetState>,
     #[account(

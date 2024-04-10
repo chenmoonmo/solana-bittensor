@@ -11,7 +11,9 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
     let subnets = &mut ctx.accounts.bittensor_state.load_mut()?.subnets;
 
     for subnet in subnets.iter_mut() {
+
         let weight = subnet.calculate_weight(validators);
+        
         let reward_amount = REWARD_PER_EPOCH
             .checked_div(weight as u64)
             .unwrap()

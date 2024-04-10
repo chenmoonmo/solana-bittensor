@@ -4,4 +4,7 @@ use anchor_lang::prelude::*;
 pub enum ErrorCode {
     #[msg("Not enough stake to withdraw.")]
     NotEnoughStake,
+    #[msg("Validator is exist.")]
+    ValidatorExist,
+    
 }

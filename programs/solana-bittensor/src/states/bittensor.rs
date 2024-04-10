@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use super::{subnet, validator};
+
 pub const SUBNET_MAX_NUMBER: usize = 32;
 pub const BITTENSOR_VALIDATOR_MAX_NUMBER: usize = 32;
 pub const MAX_EPOCH_NUMBER: usize = 10;
@@ -51,6 +53,15 @@ impl BittensorState {
                 self.validators[i].id = i as u8 + 1;
                 self.validators[i].stake = 0;
                 self.validators[i].owner = owner;
+            }
+        }
+    }
+
+    pub fn validator_add_stake(&mut self, validator_id: u8, subnet_id: u8, amount: u64) -> () {
+        for validator in self.validators.iter_mut() {
+            if validator.id == validator_id && validator.subnet_id == subnet_id {
+                validator.stake += amount;
+                break;
             }
         }
     }
@@ -127,6 +138,7 @@ impl SubnetInfo {
 #[derive(Default, Debug)]
 pub struct BittensorValidatorInfo {
     pub id: u8,
+    pub subnet_id: u8,
     // 质押数量
     pub stake: u64,
     pub owner: Pubkey,
