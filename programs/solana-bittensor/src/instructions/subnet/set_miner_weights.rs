@@ -6,8 +6,8 @@ pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u64>) -> Re
     let validator_id = ctx.accounts.validator_state.id;
     let sum_weights = weights.iter().sum::<u64>();
     require!(
-        sum_weights <= MAX_MINER_WEIGHT,
-        ErrorCode::TotalWeightExceedsMaxMinerWeight
+        sum_weights <= MAX_WEIGHT,
+        ErrorCode::TotalWeightExceedsMaxWeight
     );
     ctx.accounts
         .subnet_epoch

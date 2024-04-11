@@ -34,11 +34,14 @@ pub mod solana_bittensor {
         instructions::initialize_subnet_miner(ctx)
     }
 
-    // pub fn set_miner_weight(ctx: Context<SetMinerWeight>, weight: u64) -> Result<()> {
-    //     instructions::set_miner_weight(ctx, weight)
-    // }
     // 1. 注册主网验证人
+    pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) -> Result<()> {
+        instructions::register_bittensor_validator(ctx)
+    }
     // 2. 给子网打分
+    pub fn set_subnet_weights(ctx: Context<SetSubnetWeights>, weights: Vec<u64>) -> Result<()> {
+        instructions::set_subnet_weights(ctx, weights)
+    }
 
     // 3. 验证人质押
     pub fn subnet_validator_stake(ctx: Context<SubnetValidatorStake>, amount: u64) -> Result<()> {
@@ -49,14 +52,18 @@ pub mod solana_bittensor {
         instructions::miner_stake(ctx, amount)
     }
     // 5. 结束主网周期
+    pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
+        instructions::end_epoch(ctx)
+    }
 
     // 6. 结束子网周期
+    pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
+        instructions::end_subnet_epoch(ctx)
+    }
 
-    pub fn set_miner_weights(
-        ctx: Context<SetMinerWeights>,
-        weights: Vec<u64>
-    ) -> Result<()> {
-        instructions::set_miner_weights(ctx, weights) 
+    // 7. 给子网矿工打分
+    pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u64>) -> Result<()> {
+        instructions::set_miner_weights(ctx, weights)
     }
 }
 

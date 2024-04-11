@@ -13,6 +13,7 @@ describe("solana-bittensor", () => {
 
   let user: anchor.web3.Keypair;
   let bittensorPDA: anchor.web3.PublicKey;
+  let bittensorEpochPDA: anchor.web3.PublicKey;
   let subnet1PDA: anchor.web3.PublicKey;
   let subnet1WeightsPDA: anchor.web3.PublicKey;
   let validator1PDA: anchor.web3.PublicKey;
@@ -42,6 +43,10 @@ describe("solana-bittensor", () => {
       [Buffer.from("bittensor")],
       program.programId
     );
+    [bittensorEpochPDA] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("bittensor_epoch"), bittensorPDA.toBuffer()],
+      program.programId
+    );
 
     [taoMint] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from(Buffer.from("tao")), bittensorPDA.toBuffer()],
@@ -57,6 +62,7 @@ describe("solana-bittensor", () => {
       .initializeBittensor()
       .accounts({
         bittensorState: bittensorPDA,
+        bittensorEpoch: bittensorEpochPDA,
         taoMint,
         taoStake,
         owner: user.publicKey,
@@ -69,18 +75,12 @@ describe("solana-bittensor", () => {
         console.log("Error: ", err);
       });
 
-    const state = await program.account.bittensorState.fetch(bittensorPDA);
-
-    console.log("State: ", state);
-
     userTaoATA = await token.createAssociatedTokenAccount(
       connection,
       user,
       taoMint,
       user.publicKey
     );
-
-    console.log("User tao ATA: ", userTaoATA);
 
     await program.methods
       .mint()
@@ -97,10 +97,6 @@ describe("solana-bittensor", () => {
       .catch((err) => {
         console.log("Error: ", err);
       });
-
-    const taoBalance = await connection.getTokenAccountBalance(userTaoATA);
-
-    console.log("Tao balance: ", taoBalance);
   });
 
   it("Is initlialized subnet", async () => {
@@ -136,16 +132,6 @@ describe("solana-bittensor", () => {
       .catch((err) => {
         console.log("Error: ", err);
       });
-
-    const subnet = await program.account.subnetState.fetch(subnet1PDA);
-    const subnetEpoch = await program.account.subnetEpochState.fetch(
-      subnet1WeightsPDA
-    );
-    const bittensor = await program.account.bittensorState.fetch(bittensorPDA);
-
-    console.log("Subnet state: ", subnet);
-    console.log("Subnet epoch state: ", subnetEpoch);
-    console.log("Bittensor state: ", bittensor);
   });
 
   it("Is initlialized Validator", async () => {
@@ -175,12 +161,6 @@ describe("solana-bittensor", () => {
       .catch((err) => {
         console.log("Error: ", err);
       });
-
-    const validator = await program.account.validatorState.fetch(validator1PDA);
-    const subnet = await program.account.subnetState.fetch(subnet1PDA);
-
-    console.log("Validator state: ", validator);
-    console.log("Subnet state: ", subnet);
   });
 
   it("Is initlialized Miner", async () => {
@@ -209,15 +189,9 @@ describe("solana-bittensor", () => {
       .catch((err) => {
         console.log("Error: ", err);
       });
-
-    const miner = await program.account.minerState.fetch(miner1PDA);
-    const subnet = await program.account.subnetState.fetch(subnet1PDA);
-
-    console.log("miner state: ", miner);
-    console.log("Subnet state: ", subnet);
   });
 
-  it("set_miner_weights", async () => {
+  it("set miner weights", async () => {
     await program.methods
       .setMinerWeights([new anchor.BN(200), new anchor.BN(300)])
       .accounts({
@@ -239,4 +213,45 @@ describe("solana-bittensor", () => {
 
     console.log("Weights state: ", weights);
   });
+
+  it("bittensor end epoch", async () => {
+    await program.methods
+      .endEpoch()
+      .accounts({
+        bittensorState: bittensorPDA,
+        bittensorEpoch: bittensorEpochPDA,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    const bittensor = await program.account.bittensorState.fetch(bittensorPDA);
+
+    console.log("Bittensor state: ", bittensor.subnets[0]);
+  });
+
+  // it("subnet end epoch", async () => {
+  //   await program.methods
+  //     .endSubnetEpoch()
+  //     .accounts({
+  //       subnetState: subnet1PDA,
+  //       subnetEpoch: subnet1WeightsPDA,
+  //       systemProgram: anchor.web3.SystemProgram.programId,
+  //     })
+  //     .rpc()
+  //     .catch((err) => {
+  //       console.log("Error: ", err);
+  //     });
+
+  //   const subnet = await program.account.subnetState.fetch(subnet1PDA);
+  //   const weights = await program.account.subnetEpochState.fetch(
+  //     subnet1WeightsPDA
+  //   );
+
+  //   console.log("Subnet state: ", subnet);
+
+  //   console.log("Weights state: ", weights);
+  // });
 });

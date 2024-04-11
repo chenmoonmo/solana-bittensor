@@ -111,8 +111,8 @@ impl SubnetState {
 #[repr(packed)]
 #[derive(Default, Debug)]
 pub struct ValidatorInfo {
-    pub owner: Pubkey,
     pub id: u8,
+    pub owner: Pubkey,
     // 质押数量
     pub stake: u64,
     // 上一个周期的工作量

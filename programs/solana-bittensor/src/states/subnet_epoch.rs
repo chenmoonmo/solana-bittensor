@@ -1,7 +1,7 @@
 use super::{MAX_MINER_NUMBER, MAX_VALIDATOR_NUMBER};
 use anchor_lang::prelude::*;
 
-pub const MAX_MINER_WEIGHT: u64 = 1000;
+pub const MAX_WEIGHT: u64 = 1000;
 
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
@@ -22,6 +22,11 @@ impl Default for SubnetEpochState {
 }
 
 impl SubnetEpochState {
+    pub fn initialize(&mut self, epoch_start_timestamp: i64) -> () {
+        self.epoch_start_timestamp = epoch_start_timestamp;
+        self.miners_weights = [[0; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER];
+    }
+
     pub fn set_miner_weights(&mut self, validator_id: u8, weights: Vec<u64>) -> () {
         // 将 Vec<u64> 转换为 [u64; MAX_MINER_NUMBER]
         let mut weights_array = [0; MAX_MINER_NUMBER];

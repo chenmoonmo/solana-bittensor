@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
+    // TODO: 燃烧注册费
     // let timestamp = Clock::get()?.unix_timestamp;
     let owner = *ctx.accounts.owner.key;
     let subnet_id = ctx

@@ -24,6 +24,15 @@ pub struct InitializeBittensor<'info> {
     )]
     pub bittensor_state: AccountLoader<'info, BittensorState>,
 
+    #[account(
+        init,
+        payer = owner,
+        space = 10 * 1024,
+        seeds = [b"bittensor_epoch", bittensor_state.key().as_ref()],
+        bump,
+    )]
+    pub bittensor_epoch: AccountLoader<'info, BittensorEpochState>,
+
     // 系统奖励代币
     #[account(
         init,
@@ -46,7 +55,7 @@ pub struct InitializeBittensor<'info> {
     pub tao_stake: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     pub owner: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
 }
