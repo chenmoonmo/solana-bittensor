@@ -8,6 +8,7 @@ pub fn set_subnet_weights(ctx: Context<SetSubnetWeights>, weights: Vec<u64>) -> 
     let validator_id = ctx.accounts.validator_state.id;
 
     let sum_weights = weights.iter().sum::<u64>();
+    // weights sum should not exceed MAX_WEIGHT
     require!(
         sum_weights <= MAX_WEIGHT,
         ErrorCode::TotalWeightExceedsMaxWeight
@@ -16,6 +17,7 @@ pub fn set_subnet_weights(ctx: Context<SetSubnetWeights>, weights: Vec<u64>) -> 
     let is_bittensor_validator = validators
         .iter()
         .any(|v| v.validator_id == validator_id && v.subnet_id == subnet_id);
+    // if validator is not a bittensor validator, return error
     require!(is_bittensor_validator, ErrorCode::NotBittensorValidator);
 
     ctx.accounts
@@ -29,12 +31,14 @@ pub fn set_subnet_weights(ctx: Context<SetSubnetWeights>, weights: Vec<u64>) -> 
 #[derive(Accounts)]
 pub struct SetSubnetWeights<'info> {
     #[account(
+        mut,
         seeds = [b"bittensor"],
         bump,
     )]
     pub bittensor_state: AccountLoader<'info, BittensorState>,
 
     #[account(
+        mut,
         seeds = [b"bittensor_epoch", bittensor_state.key().as_ref()],
         bump,
     )]

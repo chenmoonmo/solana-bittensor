@@ -5,10 +5,12 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 pub fn initialize_bittensor(ctx: Context<InitializeBittensor>) -> Result<()> {
     let timestamp = Clock::get()?.unix_timestamp;
 
+    ctx.accounts.bittensor_epoch.load_init()?;
+
     ctx.accounts
         .bittensor_state
         .load_init()?
-        .update_epoch_start_timestamp(timestamp);
+        .initialize(timestamp);
 
     Ok(())
 }

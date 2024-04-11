@@ -32,6 +32,7 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
 #[derive(Accounts)]
 pub struct RegisterBittensorValidator<'info> {
     #[account(
+        mut,
         seeds = [b"bittensor"],
         bump,
     )]
@@ -41,6 +42,7 @@ pub struct RegisterBittensorValidator<'info> {
     pub subnet_state: AccountLoader<'info, SubnetState>,
 
     #[account(
+        mut,
         seeds = [b"validator_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump
     )]

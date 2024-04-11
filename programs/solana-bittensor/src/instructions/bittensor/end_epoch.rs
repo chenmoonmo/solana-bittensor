@@ -6,34 +6,49 @@ pub const REWARD_PER_EPOCH: u64 = 1000 * 1_000_000_000;
 
 pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
     // 向子网分发奖励
-    let validators = ctx.accounts.bittensor_state.load()?.validators;
-    let subnets = &mut ctx.accounts.bittensor_state.load_mut()?.subnets;
+    let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
+    let weights = ctx.accounts.bittensor_epoch.load()?.weights;
 
-    let weights = ctx.accounts.bittensor_epoch.load_mut()?.weights;
+    let mut subnet_weights = [0u64; SUBNET_MAX_NUMBER];
 
-    let mut subnet_weights = [0; SUBNET_MAX_NUMBER];
+    {
+        let validators = &bittensor_state.validators;
 
-    for i in 0..MAX_VALIDATOR_NUMBER {
-        let validator = &validators[i];
+        for i in 0..MAX_VALIDATOR_NUMBER {
+            let validator_weights = *weights.get(i).unwrap();
 
-        for j in 0..SUBNET_MAX_NUMBER {
-            subnet_weights[j] += weights[i][j] * validator.stake;
+            for j in 0..SUBNET_MAX_NUMBER {
+                let weight = *validator_weights.get(j).unwrap();
+
+                subnet_weights[j as usize] += (weight as u128)
+                    .checked_mul(validators[i].stake as u128)
+                    .unwrap() as u64;
+            }
         }
     }
 
     let total_weight = subnet_weights.iter().sum::<u64>();
 
     for i in 0..SUBNET_MAX_NUMBER {
-        let subnet = &mut subnets[i];
+        let subnet = bittensor_state.subnets[i];
 
         if subnet.owner != Pubkey::default() {
-            let reward = REWARD_PER_EPOCH * subnet_weights[i] / total_weight;
+            let reward = REWARD_PER_EPOCH
+                .checked_mul(subnet_weights[i])
+                .unwrap()
+                .checked_div(total_weight)
+                .unwrap_or(0);
 
-            subnet.distribute_reward += reward;
+            bittensor_state.reward_subnet(i as u8, reward);
         }
     }
 
-    // TODO 重置 bittensor_epoch
+    let timestamp = Clock::get()?.unix_timestamp;
+
+    ctx.accounts
+        .bittensor_epoch
+        .load_mut()?
+        .initialize_epoch(timestamp);
 
     Ok(())
 }

@@ -9,6 +9,7 @@ pub const SUBNET_EPOCH_DURATION: i64 = 60 * 60 * 24;
 #[derive(Debug)]
 pub struct SubnetState {
     pub id: u8,
+    pub owner: Pubkey,
     pub stake: u64,
     pub last_validator_id: i8,
     pub last_miner_id: i8,
@@ -27,11 +28,12 @@ impl SubnetState {
         + ValidatorInfo::LEN * MAX_VALIDATOR_NUMBER
         + MinerInfo::LEN * MAX_MINER_NUMBER;
 
-    pub fn initialize(&mut self, id: u8) -> () {
+    pub fn initialize(&mut self, id: u8,owner: Pubkey) -> () {
         let validators = [ValidatorInfo::default(); MAX_VALIDATOR_NUMBER];
         let miners = [MinerInfo::default(); MAX_MINER_NUMBER];
 
         self.id = id;
+        self.owner = owner;
         self.stake = 0;
         self.miner_total_stake = 0;
         self.validator_total_stake = 0;

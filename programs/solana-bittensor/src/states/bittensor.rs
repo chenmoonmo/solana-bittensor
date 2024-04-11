@@ -18,19 +18,28 @@ pub struct BittensorState {
 }
 
 impl BittensorState {
+    pub fn initialize(&mut self,epoch_start_timestamp: i64) -> () {
+        self.epoch_start_timestamp = epoch_start_timestamp;
+        self.total_stake = 0;
+        self.last_validator_id = -1;
+        self.last_subnet_id = -1;
+        self.subnets = [SubnetInfo::default(); SUBNET_MAX_NUMBER];
+        self.validators = [BittensorValidatorInfo::default(); BITTENSOR_VALIDATOR_MAX_NUMBER];
+    }
     pub fn update_epoch_start_timestamp(&mut self, timestamp: i64) -> () {
         self.epoch_start_timestamp = timestamp;
     }
 
     pub fn create_subnet(&mut self, owner: Pubkey) -> u8 {
         let id = (self.last_subnet_id + 1) as u8;
-        self.subnets[id as usize] = SubnetInfo {
-            id,
-            owner,
-            distribute_reward: 0,
-            stake: 0,
-        };
+
+        self.subnets[id as usize].id = 1;
+        self.subnets[id as usize].owner = owner;
+        self.subnets[id as usize].distribute_reward = 0;
+        self.subnets[id as usize].stake = 0;
+
         self.last_subnet_id += 1;
+
         id
     }
 
@@ -59,6 +68,10 @@ impl BittensorState {
                 break;
             }
         }
+    }
+
+    pub fn reward_subnet(&mut self, subnet_id: u8, reward: u64) -> () {
+        self.subnets[subnet_id as usize].distribute_reward += reward;
     }
 }
 
