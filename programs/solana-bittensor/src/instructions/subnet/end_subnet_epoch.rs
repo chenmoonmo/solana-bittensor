@@ -51,10 +51,9 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
         subnet_state.validators[i].reward += reward;
     }
 
-    // // TODO: reset subnet_epoch
-    // TODO:  reset distribute reward bittensor_state
-
+    // subnet_state.distribute_reward 好像就没用
     subnet_state.distribute_reward = 0;
+    bittensor_state.subnets[subnet_state.id as usize].distribute_reward = 0;
     subnet_epoch.initialize(timestamp);
 
     Ok(())

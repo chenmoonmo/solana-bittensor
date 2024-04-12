@@ -14,6 +14,8 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
 
     // TODO: 注册费用不足验证
 
+    let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
+
     let bump = ctx.bumps.bittensor_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
 
@@ -33,12 +35,12 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
 
     let owner = ctx.accounts.owner.key();
 
-    let miner_id = ctx.accounts.subnet_state.load_mut()?.create_miner(owner);
+    let miner_id = subnet_state.create_miner(owner);
 
-    let miner_state = &mut ctx.accounts.miner_state.load_init()?;
-
-    miner_state.owner = owner;
-    miner_state.id = miner_id;
+    ctx.accounts
+        .miner_state
+        .load_init()?
+        .initialize(miner_id, subnet_state.id, owner);
 
     Ok(())
 }

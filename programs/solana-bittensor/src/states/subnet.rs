@@ -28,7 +28,7 @@ impl SubnetState {
         + ValidatorInfo::LEN * MAX_VALIDATOR_NUMBER
         + MinerInfo::LEN * MAX_MINER_NUMBER;
 
-    pub fn initialize(&mut self, id: u8,owner: Pubkey) -> () {
+    pub fn initialize(&mut self, id: u8, owner: Pubkey) -> () {
         let validators = [ValidatorInfo::default(); MAX_VALIDATOR_NUMBER];
         let miners = [MinerInfo::default(); MAX_MINER_NUMBER];
 
@@ -46,25 +46,17 @@ impl SubnetState {
 
     pub fn create_validator(&mut self, owner: Pubkey) -> u8 {
         let id = (self.last_validator_id + 1) as u8;
-        for i in 0..MAX_VALIDATOR_NUMBER {
-            if self.validators[i].id == 0 {
-                self.validators[i].id = id;
-                self.validators[i].owner = owner;
-                break;
-            }
-        }
+        self.validators[id as usize].id = id;
+        self.validators[id as usize].owner = owner;
+        self.last_validator_id = id as i8;
         id
     }
 
     pub fn create_miner(&mut self, owner: Pubkey) -> u8 {
         let id = (self.last_miner_id + 1) as u8;
-        for i in 0..MAX_MINER_NUMBER {
-            if self.miners[i].id == 0 {
-                self.miners[i].id = id;
-                self.miners[i].owner = owner;
-                break;
-            }
-        }
+        self.miners[id as usize].id = id;
+        self.miners[id as usize].owner = owner;
+        self.last_miner_id = id as i8;
         id
     }
 

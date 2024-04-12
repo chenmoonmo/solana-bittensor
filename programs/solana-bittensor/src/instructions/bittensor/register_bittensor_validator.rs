@@ -18,10 +18,12 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
     // 已经主网验证人
     require!(!is_exist, ErrorCode::ValidatorExist);
 
+    // TODO: id
     for validator in bittensor_state.validators.iter_mut() {
         if validator.id == 0 {
             validator.id = validator_id;
             validator.subnet_id = subnet_id;
+            validator.validator_id = validator.id;
             validator.stake = stake;
             validator.owner = *ctx.accounts.owner.key;
             break;

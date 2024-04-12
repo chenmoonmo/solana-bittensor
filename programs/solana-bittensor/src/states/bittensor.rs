@@ -33,7 +33,7 @@ impl BittensorState {
     pub fn create_subnet(&mut self, owner: Pubkey) -> u8 {
         let id = (self.last_subnet_id + 1) as u8;
 
-        self.subnets[id as usize].id = 1;
+        self.subnets[id as usize].id = id;
         self.subnets[id as usize].owner = owner;
         self.subnets[id as usize].distribute_reward = 0;
         self.subnets[id as usize].stake = 0;
