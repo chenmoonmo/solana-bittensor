@@ -491,52 +491,42 @@ describe("solana-bittensor", () => {
     );
 
     console.log(bittensorState.validators);
-
-    return;
-    await program.methods
-      .registerBittensorValidator()
-      .accounts({
-        bittensorState: bittensorPDA,
-        subnetState: subnet1PDA,
-        validatorState: validator1PDA,
-        owner: user.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      })
-      .signers([user])
-      .rpc()
-      .catch((err) => {
-        console.log("Error: ", err);
-      });
-
-    const bittensor = await program.account.bittensorState.fetch(bittensorPDA);
-
-    console.log("Bittensor validators: ", bittensor.validators[0]);
-    console.log("Bittensor last id : ", bittensor.lastValidatorId);
   });
 
-  // it("set subnet weights", async () => {
-  //   await program.methods
-  //     .setSubnetWeights([new anchor.BN(200)])
-  //     .accounts({
-  //       bittensorState: bittensorPDA,
-  //       bittensorEpoch: bittensorEpochPDA,
-  //       subnetState: subnet1PDA,
-  //       validatorState: validator1PDA,
-  //       owner: user.publicKey,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //     })
-  //     .signers([user])
-  //     .rpc()
-  //     .catch((err) => {
-  //       console.log("Error: ", err);
-  //     });
+  it("set subnet weights", async () => {
+    await Promise.all(
+      validators.map((validator) =>
+        program.methods
+          .setSubnetWeights([
+            new anchor.BN(500),
+            new anchor.BN(200),
+            new anchor.BN(300),
+          ])
+          .accounts({
+            bittensorState: bittensorPDA,
+            bittensorEpoch: bittensorEpochPDA,
+            subnetState: validator.subnet.subnetPDA,
+            validatorState: validator.validatorPDA,
+            owner: validator.owner.publicKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .signers([validator.owner])
+          .rpc()
+          .catch((err) => {
+            console.log("Error: ", err);
+          })
+      )
+    );
 
-  //   const bettensorEpoch = await program.account.bittensorEpochState.fetch(
-  //     bittensorEpochPDA
-  //   );
+    const bettensorEpoch = await program.account.bittensorEpochState.fetch(
+      bittensorEpochPDA
+    );
 
-  //   console.log("Bittensor epoch weights: ", bettensorEpoch.weights);
-  // });
+    console.log(
+      "Bittensor epoch weights: ",
+      bettensorEpoch.weights.slice(0, 3)
+    );
+  });
 
   // it("bittensor end epoch", async () => {
   //   const solbalance1 = await connection.getBalance(user.publicKey);
