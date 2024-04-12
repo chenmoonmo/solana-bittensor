@@ -48,13 +48,14 @@ impl BittensorState {
         owner: Pubkey,
         subnet_id: u8,
         validator_id: u8,
+        stake: u64,
     ) -> u8 {
         let id = (self.last_validator_id + 1) as u8;
         self.validators[id as usize] = BittensorValidatorInfo {
             id,
             validator_id,
             subnet_id,
-            stake: 0,
+            stake,
             owner,
         };
         self.last_validator_id += 1;

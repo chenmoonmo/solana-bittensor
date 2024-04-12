@@ -5,30 +5,26 @@ use anchor_lang::prelude::*;
 pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) -> Result<()> {
     let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
 
-    let validator_id = ctx.accounts.validator_state.id;
-    let stake = ctx.accounts.validator_state.stake;
+    let validator_state = &mut ctx.accounts.validator_state;
+    let validator_id = validator_state.id;
+    let stake = validator_state.stake;
+    let owner = validator_state.owner;
     let subnet_id = ctx.accounts.subnet_state.load()?.id;
 
-    let is_exist = bittensor_state.last_validator_id != -1
-        && bittensor_state
-            .validators
-            .iter()
-            .any(|validator| validator.id == validator_id && validator.subnet_id == subnet_id);
+    let is_exist = bittensor_state
+        .validators
+        .iter()
+        .any(|validator: &BittensorValidatorInfo| {
+            validator.validator_id == validator_id
+                && validator.subnet_id == subnet_id
+                && validator.owner != Pubkey::default()
+        });
 
     // 已经主网验证人
     require!(!is_exist, ErrorCode::ValidatorExist);
 
     // TODO: id
-    for validator in bittensor_state.validators.iter_mut() {
-        if validator.id == 0 {
-            validator.id = validator_id;
-            validator.subnet_id = subnet_id;
-            validator.validator_id = validator.id;
-            validator.stake = stake;
-            validator.owner = *ctx.accounts.owner.key;
-            break;
-        }
-    }
+    bittensor_state.create_bittensor_validator(owner, subnet_id, validator_id, stake);
 
     Ok(())
 }
