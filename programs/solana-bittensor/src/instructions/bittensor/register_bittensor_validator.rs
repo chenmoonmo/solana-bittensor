@@ -3,20 +3,22 @@ use crate::states::*;
 use anchor_lang::prelude::*;
 
 pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) -> Result<()> {
-    let validators = &mut ctx.accounts.bittensor_state.load_mut()?.validators;
+    let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
 
     let validator_id = ctx.accounts.validator_state.id;
     let stake = ctx.accounts.validator_state.stake;
     let subnet_id = ctx.accounts.subnet_state.load()?.id;
 
-    let is_exist = validators
-        .iter()
-        .any(|validator| validator.id == validator_id && validator.subnet_id == subnet_id);
+    let is_exist = bittensor_state.last_validator_id != -1
+        && bittensor_state
+            .validators
+            .iter()
+            .any(|validator| validator.id == validator_id && validator.subnet_id == subnet_id);
 
     // 已经主网验证人
     require!(!is_exist, ErrorCode::ValidatorExist);
 
-    for validator in validators.iter_mut() {
+    for validator in bittensor_state.validators.iter_mut() {
         if validator.id == 0 {
             validator.id = validator_id;
             validator.subnet_id = subnet_id;

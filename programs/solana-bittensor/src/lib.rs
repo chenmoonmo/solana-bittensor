@@ -44,8 +44,8 @@ pub mod solana_bittensor {
     }
 
     // 3. 验证人质押
-    pub fn subnet_validator_stake(ctx: Context<SubnetValidatorStake>, amount: u64) -> Result<()> {
-        instructions::subnet_validator_stake(ctx, amount)
+    pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
+        instructions::validator_stake(ctx, amount)
     }
     // 4. 矿工质押
     pub fn miner_stake(ctx: Context<MinerStake>, amount: u64) -> Result<()> {

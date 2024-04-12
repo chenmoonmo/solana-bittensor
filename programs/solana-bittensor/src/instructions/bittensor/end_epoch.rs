@@ -7,23 +7,16 @@ pub const REWARD_PER_EPOCH: u64 = 1000 * 1_000_000_000;
 pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
     // 向子网分发奖励
     let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
-    let weights = ctx.accounts.bittensor_epoch.load()?.weights;
 
-    let mut subnet_weights = [0u64; SUBNET_MAX_NUMBER];
+    let bittensor_epoch = &mut ctx.accounts.bittensor_epoch.load_mut()?;
 
-    {
-        let validators = &bittensor_state.validators;
+    let mut subnet_weights = Box::new([0u64; SUBNET_MAX_NUMBER]);
 
-        for i in 0..MAX_VALIDATOR_NUMBER {
-            let validator_weights = *weights.get(i).unwrap();
-
-            for j in 0..SUBNET_MAX_NUMBER {
-                let weight = *validator_weights.get(j).unwrap();
-
-                subnet_weights[j as usize] += (weight as u128)
-                    .checked_mul(validators[i].stake as u128)
-                    .unwrap() as u64;
-            }
+    for i in 0..MAX_VALIDATOR_NUMBER {
+        for j in 0..MAX_VALIDATOR_NUMBER {
+            subnet_weights[j as usize] += (bittensor_epoch.weights[i][j] as u128)
+                .checked_mul(bittensor_state.validators[i].stake as u128)
+                .unwrap() as u64;
         }
     }
 
@@ -39,16 +32,13 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
                 .checked_div(total_weight)
                 .unwrap_or(0);
 
-            bittensor_state.reward_subnet(i as u8, reward);
+            bittensor_state.reward_subnet(i as u8, reward)
         }
     }
 
     let timestamp = Clock::get()?.unix_timestamp;
 
-    ctx.accounts
-        .bittensor_epoch
-        .load_mut()?
-        .initialize_epoch(timestamp);
+    bittensor_epoch.initialize_epoch(timestamp);
 
     Ok(())
 }

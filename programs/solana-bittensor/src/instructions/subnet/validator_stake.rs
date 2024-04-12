@@ -5,7 +5,7 @@ use anchor_spl::{
     token::{Mint, Token, TokenAccount, Transfer},
 };
 
-pub fn subnet_validator_stake(ctx: Context<SubnetValidatorStake>, amount: u64) -> Result<()> {
+pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
     token::transfer(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -27,7 +27,7 @@ pub fn subnet_validator_stake(ctx: Context<SubnetValidatorStake>, amount: u64) -
         .validator_add_stake(validator_id, amount);
 
     ctx.accounts.validator_state.add_stake(amount);
-    
+
     ctx.accounts
         .bittensor_state
         .load_mut()?
@@ -37,7 +37,7 @@ pub fn subnet_validator_stake(ctx: Context<SubnetValidatorStake>, amount: u64) -
 }
 
 #[derive(Accounts)]
-pub struct SubnetValidatorStake<'info> {
+pub struct ValidatorStake<'info> {
     #[account(
         mut,
         seeds = [b"bittensor"],
