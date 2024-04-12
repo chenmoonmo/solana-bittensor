@@ -298,17 +298,6 @@ describe("solana-bittensor", () => {
   it("bittensor end epoch", async () => {
     const solbalance1 = await connection.getBalance(user.publicKey);
 
-    // const modifyComputeUnits =
-    //   anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
-    //     units: 10000000,
-    //   });
-
-    // const addPriorityFee = anchor.web3.ComputeBudgetProgram.setComputeUnitPrice(
-    //   {
-    //     microLamports: 1,
-    //   }
-    // );
-
     await program.methods
       .endEpoch()
       .accounts({
@@ -316,7 +305,6 @@ describe("solana-bittensor", () => {
         bittensorEpoch: bittensorEpochPDA,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      // .preInstructions([modifyComputeUnits, addPriorityFee])
       .rpc()
       .catch((err) => {
         console.log("Error: ", err);
@@ -329,26 +317,28 @@ describe("solana-bittensor", () => {
     console.log("User balance: ", solbalance1 - solbalance);
   });
 
-  // it("subnet end epoch", async () => {
-  //   await program.methods
-  //     .endSubnetEpoch()
-  //     .accounts({
-  //       subnetState: subnet1PDA,
-  //       subnetEpoch: subnet1WeightsPDA,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //     })
-  //     .rpc()
-  //     .catch((err) => {
-  //       console.log("Error: ", err);
-  //     });
+  it("subnet end epoch", async () => {
+    await program.methods
+      .endSubnetEpoch()
+      .accounts({
+        bittensorState: bittensorPDA,
+        subnetState: subnet1PDA,
+        subnetEpoch: subnet1WeightsPDA,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
 
-  //   const subnet = await program.account.subnetState.fetch(subnet1PDA);
-  //   const weights = await program.account.subnetEpochState.fetch(
-  //     subnet1WeightsPDA
-  //   );
+    const subnet = await program.account.subnetState.fetch(subnet1PDA);
+    const weights = await program.account.subnetEpochState.fetch(
+      subnet1WeightsPDA
+    );
 
-  //   console.log("Subnet state: ", subnet);
+    console.log("miners state: ", subnet.miners[0]);
+    console.log("validator state: ", subnet.validators[0]);
 
-  //   console.log("Weights state: ", weights);
-  // });
+    // console.log("Weights state: ", weights);
+  });
 });
