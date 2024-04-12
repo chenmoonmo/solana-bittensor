@@ -18,7 +18,7 @@ pub struct BittensorState {
 }
 
 impl BittensorState {
-    pub fn initialize(&mut self,epoch_start_timestamp: i64) -> () {
+    pub fn initialize(&mut self, epoch_start_timestamp: i64) -> () {
         self.epoch_start_timestamp = epoch_start_timestamp;
         self.total_stake = 0;
         self.last_validator_id = -1;
@@ -63,7 +63,7 @@ impl BittensorState {
 
     pub fn validator_add_stake(&mut self, validator_id: u8, subnet_id: u8, amount: u64) -> () {
         for validator in self.validators.iter_mut() {
-            if validator.id == validator_id && validator.subnet_id == subnet_id {
+            if validator.validator_id == validator_id && validator.subnet_id == subnet_id {
                 validator.stake += amount;
                 break;
             }

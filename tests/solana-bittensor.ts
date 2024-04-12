@@ -166,6 +166,36 @@ describe("solana-bittensor", () => {
       .catch((err) => {
         console.log("Error: ", err);
       });
+
+    await program.methods
+      .validatorStake(new anchor.BN(100 * 10 ** 9))
+      .accounts({
+        bittensorState: bittensorPDA,
+        subnetState: subnet1PDA,
+        taoMint: taoMint,
+        taoStake: subnetTaoStake,
+        userTaoAta: userTaoATA,
+        validatorState: validator1PDA,
+        owner: user.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: token.TOKEN_PROGRAM_ID,
+      })
+      .signers([user])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    const bittensorState = await program.account.bittensorState.fetch(
+      bittensorPDA
+    );
+    const subnetState = await program.account.subnetState.fetch(subnet1PDA);
+
+    console.log(
+      "stake info",
+      bittensorState.validators[0],
+      subnetState.validators[0]
+    );
   });
 
   it("Is initlialized Miner", async () => {

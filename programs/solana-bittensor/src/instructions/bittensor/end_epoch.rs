@@ -23,17 +23,13 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
     let total_weight = subnet_weights.iter().sum::<u64>();
 
     for i in 0..SUBNET_MAX_NUMBER {
-        let subnet = bittensor_state.subnets[i];
+        let reward = (REWARD_PER_EPOCH as u128)
+            .checked_mul(subnet_weights[i] as u128)
+            .unwrap()
+            .checked_div(total_weight as u128)
+            .unwrap_or(0) as u64;
 
-        if subnet.owner != Pubkey::default() {
-            let reward = REWARD_PER_EPOCH
-                .checked_mul(subnet_weights[i])
-                .unwrap()
-                .checked_div(total_weight)
-                .unwrap_or(0);
-
-            bittensor_state.reward_subnet(i as u8, reward)
-        }
+        bittensor_state.reward_subnet(i as u8, reward)
     }
 
     let timestamp = Clock::get()?.unix_timestamp;

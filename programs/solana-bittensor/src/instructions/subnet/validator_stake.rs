@@ -12,7 +12,7 @@ pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> 
             Transfer {
                 from: ctx.accounts.user_tao_ata.to_account_info(),
                 to: ctx.accounts.tao_stake.to_account_info(),
-                authority: ctx.accounts.user_tao_ata.to_account_info(),
+                authority: ctx.accounts.owner.to_account_info(),
             },
         ),
         amount,
@@ -21,12 +21,12 @@ pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> 
     let subnet_id = ctx.accounts.subnet_state.load()?.id;
     let validator_id = ctx.accounts.validator_state.id;
 
+    ctx.accounts.validator_state.add_stake(amount);
+
     ctx.accounts
         .subnet_state
         .load_mut()?
         .validator_add_stake(validator_id, amount);
-
-    ctx.accounts.validator_state.add_stake(amount);
 
     ctx.accounts
         .bittensor_state
@@ -46,7 +46,9 @@ pub struct ValidatorStake<'info> {
     pub bittensor_state: AccountLoader<'info, BittensorState>,
     #[account(mut)]
     pub subnet_state: AccountLoader<'info, SubnetState>,
+
     #[account(
+        mut,
         seeds = [b"validator_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump
     )]
@@ -58,6 +60,7 @@ pub struct ValidatorStake<'info> {
 
     // 质押代币存储账户
     #[account(
+        mut,
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,
