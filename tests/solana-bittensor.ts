@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
 import * as token from "@solana/spl-token";
+import { Program } from "@coral-xyz/anchor";
 import { SolanaBittensor } from "../target/types/solana_bittensor";
 
 interface User {
@@ -528,57 +528,57 @@ describe("solana-bittensor", () => {
     );
   });
 
-  // it("bittensor end epoch", async () => {
-  //   const solbalance1 = await connection.getBalance(user.publicKey);
+  it("bittensor end epoch", async () => {
+    await program.methods
+      .endEpoch()
+      .accounts({
+        bittensorState: bittensorPDA,
+        bittensorEpoch: bittensorEpochPDA,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
 
-  //   await program.methods
-  //     .endEpoch()
-  //     .accounts({
-  //       bittensorState: bittensorPDA,
-  //       bittensorEpoch: bittensorEpochPDA,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //     })
-  //     .rpc()
-  //     .catch((err) => {
-  //       console.log("Error: ", err);
-  //     });
+    const bittensor = await program.account.bittensorState.fetch(bittensorPDA);
 
-  //   const bittensor = await program.account.bittensorState.fetch(bittensorPDA);
-  //   const solbalance = await connection.getBalance(user.publicKey);
+    console.log("Bittensor state: ", bittensor.subnets.slice(0, 3));
+  });
 
-  //   console.log("Bittensor state: ", bittensor.subnets[0]);
-  //   console.log("User balance: ", solbalance1 - solbalance);
-  // });
+  it("subnet end epoch", async () => {
+    await Promise.all(
+      subnets.map((subnet) =>
+        program.methods
+          .endSubnetEpoch()
+          .accounts({
+            bittensorState: bittensorPDA,
+            subnetState: subnet.subnetPDA,
+            subnetEpoch: subnet.subnetWeightsPDA,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .rpc()
+          .catch((err) => {
+            console.log("Error: ", err);
+          })
+      )
+    );
 
-  // it("subnet end epoch", async () => {
-  //   await program.methods
-  //     .endSubnetEpoch()
-  //     .accounts({
-  //       bittensorState: bittensorPDA,
-  //       subnetState: subnet1PDA,
-  //       subnetEpoch: subnet1WeightsPDA,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //     })
-  //     .rpc()
-  //     .catch((err) => {
-  //       console.log("Error: ", err);
-  //     });
+    const subnetsState = await program.account.subnetState.all();
+    const weightsState = await program.account.subnetEpochState.all();
 
-  //   const subnet = await program.account.subnetState.fetch(subnet1PDA);
-  //   const weights = await program.account.subnetEpochState.fetch(
-  //     subnet1WeightsPDA
-  //   );
+    console.log(
+      "miners state: ",
+      subnetsState.map((item) => {
+        return item.account.miners.map((item) => item.reward.toString());
+      })
+    );
 
-  //   console.log(
-  //     "miners state: ",
-  //     subnet.miners.map((item) => item.reward.toString())
-  //   );
-  //   console.log(
-  //     "validator state: ",
-  //     subnet.validators.map((item) => item.reward.toString())
-  //   );
-  //   console.log("Weights state: ", weights);
-
-  //   // console.log("Weights state: ", weights);
-  // });
+    console.log(
+      "weights state: ",
+      weightsState.map((item) => {
+        return item.account.minersWeights.map((item) => item.toString());
+      })
+    );
+  });
 });
