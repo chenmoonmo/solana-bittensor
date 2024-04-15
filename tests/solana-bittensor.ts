@@ -434,6 +434,7 @@ describe("solana-bittensor", () => {
           id: item.account.id,
           subnetId: item.account.subnetId,
           owner: item.account.owner.toBase58(),
+          stake: item.account.stake.toString(),
         };
       })
     );
@@ -685,5 +686,111 @@ describe("solana-bittensor", () => {
       "users balance: ",
       usersBalance.map((item) => item.value.uiAmount)
     );
+  });
+
+  it("miners and validators unstake", async () => {
+    // const validatorsState = await program.account.validatorState.all();
+    // const minersState = await program.account.minerState.all();
+    //   const subnetState = await program.account.subnetState.all();
+
+    //   console.log(
+    //     "miners state",
+    //     minersState.map((item) => {
+    //       return {
+    //         id: item.account.id,
+    //         subnetId: item.account.subnetId,
+    //         owner: item.account.owner.toBase58(),
+    //         stake: item.account.stake.toString(),
+    //       };
+    //     })
+    //   );
+
+    //   console.log(
+    //     "stake info",
+    //     subnetState.map((item) => {
+    //       return item.account.miners
+    //         .sort((a, b) => a.id - b.id)
+    //         .map((item) => {
+    //           return {
+    //             id: item.id,
+    //             owner: item.owner.toBase58(),
+    //             stake: item.stake.toString(),
+    //           };
+    //         });
+    //     })
+    //   );
+
+    // console.log(
+    //   "validators state",
+    //   validatorsState.map((item) => {
+    //     return {
+    //       id: item.account.id,
+    //       owner: item.account.owner.toBase58(),
+    //       stake: item.account.stake.toString(),
+    //     };
+    //   })
+    // );
+
+    // console.log(
+    //   "stake info",
+    //   subnetState.map((item) => {
+    //     return item.account.validators
+    //       .filter((item) => +item.stake > 0)
+    //       .sort((a, b) => a.id - b.id)
+    //       .slice(0, 3)
+    //       .map((item) => {
+    //         return {
+    //           id: item.id,
+    //           owner: item.owner.toBase58(),
+    //           stake: item.stake.toString(),
+    //         };
+    //       });
+    //   })
+    // );
+
+    await Promise.all(
+      validators.map((validator) =>
+        program.methods
+          .validatorUnstakes(new anchor.BN(1 * 10 ** 9))
+          .accounts({
+            bittensorState: bittensorPDA,
+            taoMint: taoMint,
+            taoStake: validator.subnet.subnetTaoStake,
+            owner: validator.owner.publicKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: token.TOKEN_PROGRAM_ID,
+            subnetState: validator.subnet.subnetPDA,
+            userTaoAta: validator.taoATA,
+            validatorState: validator.validatorPDA,
+          })
+          .signers([validator.owner])
+          .rpc()
+          .catch((err) => {
+            console.log("Error: ", err);
+          })
+      )
+    );
+
+    // await Promise.all(
+    //   miners.map((miner) =>
+    //     program.methods
+    //       .minerUnstakes(new anchor.BN(1 * 10 ** 9))
+    //       .accounts({
+    //         taoMint: taoMint,
+    //         taoStake: miner.subnet.subnetTaoStake,
+    //         owner: miner.owner.publicKey,
+    //         systemProgram: anchor.web3.SystemProgram.programId,
+    //         tokenProgram: token.TOKEN_PROGRAM_ID,
+    //         subnetState: miner.subnet.subnetPDA,
+    //         userTaoAta: miner.taoATA,
+    //         minerState: miner.minerPDA,
+    //       })
+    //       .signers([miner.owner])
+    //       .rpc()
+    //       .catch((err) => {
+    //         console.log("Error: ", err);
+    //       })
+    //   )
+    // );
   });
 });

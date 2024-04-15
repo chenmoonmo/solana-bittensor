@@ -39,33 +39,6 @@ pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
     Ok(())
 }
 
-pub fn validator_unstake(ctx: Context<ValidatorReward>, amount: u64) -> Result<()> {
-    let validator_id = ctx.accounts.validator_state.id;
-
-    let validators = &mut ctx.accounts.subnet_state.load_mut()?.validators;
-
-    let validator = validators
-        .iter_mut()
-        .find(|x| x.id == validator_id)
-        .unwrap();
-
-    validator.stake -= amount;
-
-    token::transfer(
-        CpiContext::new(
-            ctx.accounts.token_program.to_account_info(),
-            token::Transfer {
-                from: ctx.accounts.tao_stake.to_account_info(),
-                to: ctx.accounts.user_tao_ata.to_account_info(),
-                authority: ctx.accounts.tao_stake.to_account_info(),
-            },
-        ),
-        amount,
-    )?;
-
-    Ok(())
-}
-
 #[derive(Accounts)]
 pub struct ValidatorReward<'info> {
     #[account(
@@ -92,7 +65,7 @@ pub struct ValidatorReward<'info> {
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,
-        token::authority = subnet_state
+        token::authority = bittensor_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
 

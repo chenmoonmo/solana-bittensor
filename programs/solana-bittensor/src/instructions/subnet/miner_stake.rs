@@ -31,24 +31,29 @@ pub fn miner_stake(ctx: Context<MinerStake>, amount: u64) -> Result<()> {
 }
 
 pub fn miner_unstake(ctx: Context<MinerStake>, amount: u64) -> Result<()> {
-    let miner_id = ctx.accounts.miner_state.load()?.id;
+    let miner_state = &mut ctx.accounts.miner_state.load_mut()?;
 
     ctx.accounts
         .subnet_state
         .load_mut()?
-        .miner_remove_stake(miner_id, amount);
+        .miner_remove_stake(miner_state.id, amount);
 
-    ctx.accounts.miner_state.load_mut()?.remove_stake(amount);
+    miner_state.remove_stake(amount);
 
+    let bump = ctx.bumps.bittensor_state;
+    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+
+    // TODO:
     token::transfer(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
             Transfer {
                 from: ctx.accounts.tao_stake.to_account_info(),
                 to: ctx.accounts.user_tao_ata.to_account_info(),
-                authority: ctx.accounts.tao_stake.to_account_info(),
+                authority: ctx.accounts.bittensor_state.to_account_info(),
             },
-        ),
+        )
+        .with_signer(&[pda_sign]),
         amount,
     )?;
 
@@ -57,6 +62,12 @@ pub fn miner_unstake(ctx: Context<MinerStake>, amount: u64) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct MinerStake<'info> {
+    #[account(
+        mut,
+        seeds = [b"bittensor"],
+        bump,
+    )]
+    pub bittensor_state: AccountLoader<'info, BittensorState>,
     #[account(mut)]
     pub subnet_state: AccountLoader<'info, SubnetState>,
     #[account(
@@ -75,7 +86,6 @@ pub struct MinerStake<'info> {
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,
-        token::authority = subnet_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
 

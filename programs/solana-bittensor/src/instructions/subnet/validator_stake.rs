@@ -36,6 +36,35 @@ pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> 
     Ok(())
 }
 
+pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
+    let validator = &mut ctx.accounts.validator_state;
+
+    validator.remove_stake(amount);
+
+    ctx.accounts
+        .subnet_state
+        .load_mut()?
+        .validator_remove_stake(validator.id, amount);
+
+    let bump = ctx.bumps.bittensor_state;
+    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+
+    token::transfer(
+        CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            token::Transfer {
+                from: ctx.accounts.tao_stake.to_account_info(),
+                to: ctx.accounts.user_tao_ata.to_account_info(),
+                authority: ctx.accounts.bittensor_state.to_account_info(),
+            },
+        )
+        .with_signer(&[pda_sign]),
+        amount,
+    )?;
+
+    Ok(())
+}
+
 #[derive(Accounts)]
 pub struct ValidatorStake<'info> {
     #[account(
@@ -64,7 +93,7 @@ pub struct ValidatorStake<'info> {
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,
-        token::authority = subnet_state
+        token::authority = bittensor_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
 

@@ -62,7 +62,7 @@ pub struct ValidatoWithdrawStake<'info> {
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,
-        token::authority = subnet_state
+        token::authority = bittensor_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
 
