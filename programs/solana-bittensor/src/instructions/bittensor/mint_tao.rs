@@ -20,7 +20,7 @@ pub fn mint_tao(ctx: Context<MintTao>) -> Result<()> {
             },
         )
         .with_signer(&[pda_sign]),
-        10 * 10 * 10_000_000_000,
+        50 * 1_000_000_000,
     )?;
     Ok(())
 }

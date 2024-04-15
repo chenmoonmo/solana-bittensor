@@ -1,13 +1,29 @@
 use crate::states::*;
 use anchor_lang::prelude::*;
 
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::{
+    token,
+    token::{Burn, Mint, Token, TokenAccount},
+};
 
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
     // TODO: 燃烧注册费
     // let timestamp = Clock::get()?.unix_timestamp;
+
+    token::burn(
+        CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            Burn {
+                mint: ctx.accounts.tao_mint.to_account_info(),
+                from: ctx.accounts.user_tao_ata.to_account_info(),
+                authority: ctx.accounts.owner.to_account_info(),
+            },
+        ),
+        10 * 1_000_000_000,
+    )?;
+
     let owner = *ctx.accounts.owner.key;
-    
+
     let subnet_id = ctx
         .accounts
         .bittensor_state
@@ -67,6 +83,9 @@ pub struct InitializeSubnet<'info> {
         token::authority = subnet_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut)]
+    pub user_tao_ata: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     pub owner: Signer<'info>,

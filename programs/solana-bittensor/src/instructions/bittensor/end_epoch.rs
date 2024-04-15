@@ -2,7 +2,7 @@ use crate::states::*;
 use anchor_lang::prelude::*;
 
 // 一个周期发放的奖励总数
-pub const REWARD_PER_EPOCH: u64 = 1000 * 1_000_000_000;
+pub const REWARD_PER_EPOCH: u64 = 1 * 1_000_000_000;
 
 pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
     // 向子网分发奖励

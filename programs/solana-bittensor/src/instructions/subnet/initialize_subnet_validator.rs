@@ -28,7 +28,7 @@ pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> R
             },
         )
         .with_signer(&[pda_sign]),
-        10 * 1_000_000_000,
+        1 * 1_000_000_000,
     )?;
 
     let owner = ctx.accounts.owner.key();

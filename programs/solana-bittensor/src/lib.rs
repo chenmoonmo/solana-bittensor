@@ -65,6 +65,15 @@ pub mod solana_bittensor {
     pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u64>) -> Result<()> {
         instructions::set_miner_weights(ctx, weights)
     }
+
+    // 8. 矿工提取奖励
+    pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
+        instructions::miner_reward(ctx)
+    }
+    // 9. 验证人提取奖励
+    pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
+        instructions::validator_reward(ctx)
+    }
 }
 
 #[derive(Accounts)]
