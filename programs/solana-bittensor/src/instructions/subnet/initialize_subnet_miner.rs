@@ -6,10 +6,10 @@ use anchor_spl::{
     token::{Burn, Mint, Token, TokenAccount},
 };
 
+const MINER_REGISTER_FEE: u64 = 1 * 1_000_000_000;
+
 pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()> {
     // TODO:
-    // 设置注册费用
-    // 注册矿工时 燃烧代币
     // 矿工保护期初始化
 
     // TODO: 注册费用不足验证
@@ -30,7 +30,7 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
             },
         )
         .with_signer(&[pda_sign]),
-        1 * 1_000_000_000,
+        MINER_REGISTER_FEE,
     )?;
 
     let owner = ctx.accounts.owner.key();

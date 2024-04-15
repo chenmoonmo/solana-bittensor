@@ -1,7 +1,6 @@
 pub mod initialize_subnet;
 pub mod initialize_subnet_miner;
 pub mod initialize_subnet_validator;
-pub mod miner_stake;
 pub mod miner_withdraw_stake;
 pub mod miner_reward;
 pub mod validator_stake;
@@ -13,7 +12,6 @@ pub mod set_miner_weights;
 pub use initialize_subnet::*;
 pub use initialize_subnet_miner::*;
 pub use initialize_subnet_validator::*;
-pub use miner_stake::*;
 pub use miner_withdraw_stake::*;
 pub use miner_reward::*;
 pub use validator_stake::*;

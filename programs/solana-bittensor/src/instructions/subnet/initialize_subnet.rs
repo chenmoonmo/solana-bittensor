@@ -6,8 +6,10 @@ use anchor_spl::{
     token::{Burn, Mint, Token, TokenAccount},
 };
 
+pub const SUBNET_REGISTER_FEE: u64 = 10 * 1_000_000_000;
+
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
-    // TODO: 燃烧注册费
+    // TODO: 验证注册费用 子网周期初始化
     // let timestamp = Clock::get()?.unix_timestamp;
 
     token::burn(
@@ -19,7 +21,7 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
                 authority: ctx.accounts.owner.to_account_info(),
             },
         ),
-        10 * 1_000_000_000,
+        SUBNET_REGISTER_FEE,
     )?;
 
     let owner = *ctx.accounts.owner.key;

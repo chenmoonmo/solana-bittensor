@@ -6,14 +6,14 @@ use anchor_spl::{
     token::{Burn, Mint, Token, TokenAccount},
 };
 
+pub const VALIDATOR_REGISTER_FEE: u64 = 1 * 1_000_000_000;
+
 pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> Result<()> {
     // TODO:
-    // 设置注册费用
-    // 注册验证人时 燃烧代币
     // 验证人保护期初始化
 
     // TODO: 注册费用不足验证
-    
+
     let bump = ctx.bumps.bittensor_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
 
@@ -28,7 +28,7 @@ pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> R
             },
         )
         .with_signer(&[pda_sign]),
-        1 * 1_000_000_000,
+        VALIDATOR_REGISTER_FEE,
     )?;
 
     let owner = ctx.accounts.owner.key();
