@@ -8,8 +8,8 @@ use anchor_spl::{
 };
 
 pub fn miner_withdraw_stake(ctx: Context<MinerWithdrawStake>, amount: u64) -> Result<()> {
-    let miner_stake = ctx.accounts.miner_state.load()?.stake;
-    let miner_id = ctx.accounts.miner_state.load()?.id;
+    let miner_stake = ctx.accounts.miner_state.stake;
+    let miner_id = ctx.accounts.miner_state.id;
     // 提取 stake 不能超过 miner 的 stake
     require!(miner_stake >= amount, ErrorCode::NotEnoughStake);
 
@@ -30,7 +30,7 @@ pub fn miner_withdraw_stake(ctx: Context<MinerWithdrawStake>, amount: u64) -> Re
     )?;
 
     // 1. 从 miner_state 中减去 stake
-    ctx.accounts.miner_state.load_mut()?.remove_stake(amount);
+    ctx.accounts.miner_state.remove_stake(amount);
     // 2. 从总的质押中减去 stake
     ctx.accounts
         .subnet_state
@@ -56,7 +56,7 @@ pub struct MinerWithdrawStake<'info> {
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump
     )]
-    pub miner_state: AccountLoader<'info, MinerState>,
+    pub miner_state: Box<Account<'info, MinerState>>,
 
     // 系统奖励代币
     #[account(mut)]

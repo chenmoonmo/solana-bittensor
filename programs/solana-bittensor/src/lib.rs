@@ -38,34 +38,32 @@ pub mod solana_bittensor {
     pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) -> Result<()> {
         instructions::register_bittensor_validator(ctx)
     }
+
     // 2. 给子网打分
     pub fn set_subnet_weights(ctx: Context<SetSubnetWeights>, weights: Vec<u64>) -> Result<()> {
         instructions::set_subnet_weights(ctx, weights)
     }
-
     // 3. 验证人质押
     pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
         instructions::validator_stake(ctx, amount)
     }
-
+    // 4. 验证人提取质押
     pub fn validator_unstakes(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
         instructions::validator_unstake(ctx, amount)
     }
-    // 5. 结束主网周期
-    pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
-        instructions::end_epoch(ctx)
-    }
-
-    // 6. 结束子网周期
-    pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
-        instructions::end_subnet_epoch(ctx)
-    }
-
     // 7. 给子网矿工打分
     pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u64>) -> Result<()> {
         instructions::set_miner_weights(ctx, weights)
     }
 
+    // 5. 结束主网周期
+    pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
+        instructions::end_epoch(ctx)
+    }
+    // 6. 结束子网周期
+    pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
+        instructions::end_subnet_epoch(ctx)
+    }
     // 8. 矿工提取奖励
     pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
         instructions::miner_reward(ctx)
@@ -73,6 +71,10 @@ pub mod solana_bittensor {
     // 9. 验证人提取奖励
     pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
         instructions::validator_reward(ctx)
+    }
+
+    pub fn test(ctx: Context<Test>) -> Result<()> {
+        instructions::test(ctx)
     }
 }
 

@@ -39,7 +39,6 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
 
     ctx.accounts
         .miner_state
-        .load_init()?
         .initialize(miner_id, subnet_state.id, owner);
 
     Ok(())
@@ -64,7 +63,7 @@ pub struct InitializeSubnetMiner<'info> {
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump
     )]
-    pub miner_state: AccountLoader<'info, MinerState>,
+    pub miner_state: Box<Account<'info, MinerState>>,
 
     // 系统奖励代币
     #[account(

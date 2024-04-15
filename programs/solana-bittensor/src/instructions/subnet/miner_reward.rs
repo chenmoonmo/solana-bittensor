@@ -7,7 +7,7 @@ use anchor_spl::{
 };
 
 pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
-    let miner_id = ctx.accounts.miner_state.load()?.id;
+    let miner_id = ctx.accounts.miner_state.id;
 
     let miners = &mut ctx.accounts.subnet_state.load_mut()?.miners;
 
@@ -52,7 +52,7 @@ pub struct MinerReward<'info> {
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump
     )]
-    pub miner_state: AccountLoader<'info, MinerState>,
+    pub miner_state: Box<Account<'info, MinerState>>,
 
     // 系统奖励代币
     #[account(mut)]

@@ -793,4 +793,38 @@ describe("solana-bittensor", () => {
     //   )
     // );
   });
+
+  it("test", async () => {
+    await program.methods
+      .test()
+      .accounts({
+        subnetState: subnets[0].subnetPDA,
+      })
+      .remainingAccounts(
+        new Array(38).fill(0).map((_) => {
+          return {
+            pubkey: validators[0].validatorPDA,
+            isWritable: true,
+            isSigner: false,
+          };
+        })
+      )
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    const minersState = await program.account.validatorState.all();
+
+    console.log(
+      "validators state",
+      minersState.map((item) => {
+        return {
+          id: item.account.id,
+          owner: item.account.owner.toBase58(),
+          stake: item.account.stake.toString(),
+        };
+      })
+    );
+  });
 });
