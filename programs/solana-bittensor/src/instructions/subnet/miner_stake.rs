@@ -6,7 +6,6 @@ use anchor_spl::{
 };
 
 pub fn miner_stake(ctx: Context<MinerStake>, amount: u64) -> Result<()> {
-
     token::transfer(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -27,7 +26,32 @@ pub fn miner_stake(ctx: Context<MinerStake>, amount: u64) -> Result<()> {
         .miner_add_stake(miner_id, amount);
 
     ctx.accounts.miner_state.load_mut()?.add_stake(amount);
-    
+
+    Ok(())
+}
+
+pub fn miner_unstake(ctx: Context<MinerStake>, amount: u64) -> Result<()> {
+    let miner_id = ctx.accounts.miner_state.load()?.id;
+
+    ctx.accounts
+        .subnet_state
+        .load_mut()?
+        .miner_remove_stake(miner_id, amount);
+
+    ctx.accounts.miner_state.load_mut()?.remove_stake(amount);
+
+    token::transfer(
+        CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.tao_stake.to_account_info(),
+                to: ctx.accounts.user_tao_ata.to_account_info(),
+                authority: ctx.accounts.tao_stake.to_account_info(),
+            },
+        ),
+        amount,
+    )?;
+
     Ok(())
 }
 

@@ -47,9 +47,18 @@ pub mod solana_bittensor {
     pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
         instructions::validator_stake(ctx, amount)
     }
+
+    pub fn validator_unstakes(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
+        instructions::validator_unstake(ctx, amount)
+    }
+
     // 4. 矿工质押
     pub fn miner_stake(ctx: Context<MinerStake>, amount: u64) -> Result<()> {
         instructions::miner_stake(ctx, amount)
+    }
+
+    pub fn miner_unstakes(ctx: Context<MinerStake>, amount: u64) -> Result<()> {
+        instructions::miner_unstake(ctx, amount)
     }
     // 5. 结束主网周期
     pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
