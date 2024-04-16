@@ -39,6 +39,10 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
             .checked_div(total_weights as u128)
             .unwrap() as u64;
         subnet_state.miners[i].reward += reward;
+
+        if subnet_state.miners[i].protection > 0 {
+            subnet_state.miners[i].protection -= 1;
+        }
     }
 
     for i in 0..MAX_VALIDATOR_NUMBER {
@@ -49,6 +53,10 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
             .unwrap() as u64;
         subnet_state.validators[i].bounds = validator_bounds[i];
         subnet_state.validators[i].reward += reward;
+
+        if subnet_state.validators[i].protection > 0 {
+            subnet_state.validators[i].protection -= 1;
+        }
     }
 
     // subnet_state.distribute_reward 好像就没用

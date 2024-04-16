@@ -6,6 +6,7 @@ use super::{BITTENSOR_VALIDATOR_MAX_NUMBER, SUBNET_MAX_NUMBER};
 #[repr(packed)]
 #[derive(Default, Debug)]
 pub struct BittensorEpochState {
+    pub epoch_number: u64,
     pub epoch_start_timestamp: i64,
     pub weights: [[u64; SUBNET_MAX_NUMBER]; BITTENSOR_VALIDATOR_MAX_NUMBER],
 }
@@ -22,5 +23,6 @@ impl BittensorEpochState {
     pub fn initialize_epoch(&mut self, epoch_start_timestamp: i64) -> () {
         self.epoch_start_timestamp = epoch_start_timestamp;
         self.weights = [[0; SUBNET_MAX_NUMBER]; BITTENSOR_VALIDATOR_MAX_NUMBER];
+        self.epoch_number += 1;
     }
 }

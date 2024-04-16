@@ -1,5 +1,5 @@
-use crate::states::*;
 use crate::errors::ErrorCode;
+use crate::states::*;
 use anchor_lang::prelude::*;
 
 use anchor_spl::{
@@ -10,9 +10,6 @@ use anchor_spl::{
 const MINER_REGISTER_FEE: u64 = 1 * 1_000_000_000;
 
 pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()> {
-    // TODO:
-    // 矿工保护期初始化
-
     let tao_balance = ctx.accounts.user_tao_ata.amount;
 
     require!(
@@ -45,8 +42,9 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         let mut min_miner_id = 0;
 
         for miner in subnet_state.miners {
-            // TODO: 矿工保护期
-            if miner.last_weight < subnet_state.miners[min_miner_id as usize].last_weight {
+            if miner.last_weight < subnet_state.miners[min_miner_id as usize].last_weight
+                && subnet_state.miners[min_miner_id as usize].protection == 0
+            {
                 min_miner_id = miner.id;
             }
         }
@@ -69,16 +67,18 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
             }
         }
 
-        require!(is_find_current_account, ErrorCode::CantFindAtRemainingAccounts);
+        require!(
+            is_find_current_account,
+            ErrorCode::CantFindAtRemainingAccounts
+        );
 
+        // TODO: 没领取的奖励怎么办
         ctx.accounts.miner_state.id = min_miner_id;
         ctx.accounts.miner_state.subnet_id = subnet_state.id;
         ctx.accounts.miner_state.owner = ctx.accounts.owner.key();
         ctx.accounts.miner_state.is_active = true;
-
         subnet_state.miners[min_miner_id as usize].stake = 0;
         subnet_state.miners[min_miner_id as usize].last_weight = 0;
-        // TODO: 没领取的奖励怎么办
         subnet_state.miners[min_miner_id as usize].reward = 0;
         subnet_state.miners[min_miner_id as usize].owner = ctx.accounts.owner.key();
     } else {

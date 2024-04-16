@@ -25,8 +25,11 @@ pub mod solana_bittensor {
     }
 
     // 注册子网验证人
-    pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> Result<()> {
-        instructions::initialize_subnet_validator(ctx)
+    pub fn initialize_subnet_validator(
+        ctx: Context<InitializeSubnetValidator>,
+        stake_amount: u64,
+    ) -> Result<()> {
+        instructions::initialize_subnet_validator(ctx, stake_amount)
     }
 
     // 注册子网矿工

@@ -4,6 +4,9 @@ pub const MAX_VALIDATOR_NUMBER: usize = 32;
 pub const MAX_MINER_NUMBER: usize = 32;
 pub const SUBNET_EPOCH_DURATION: i64 = 60 * 60 * 24;
 
+pub const MINER_PROTECTION: u64 = 1;
+pub const VALIDATOR_PROTECTION: u64 = 1;
+
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
 #[derive(Debug)]
@@ -44,10 +47,11 @@ impl SubnetState {
         self.last_validator_id = -1;
     }
 
-    pub fn create_validator(&mut self, owner: Pubkey) -> u8 {
+    pub fn create_validator(&mut self, owner: Pubkey, stake:u64 ) -> u8 {
         let id = (self.last_validator_id + 1) as u8;
         self.validators[id as usize].id = id;
         self.validators[id as usize].owner = owner;
+        self.validators[id as usize].stake = stake;
         self.last_validator_id = id as i8;
         id
     }
@@ -105,7 +109,7 @@ impl SubnetState {
 
 #[zero_copy(unsafe)]
 #[repr(packed)]
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct ValidatorInfo {
     pub id: u8,
     pub owner: Pubkey,
@@ -115,6 +119,22 @@ pub struct ValidatorInfo {
     pub bounds: u64,
     // 待提取奖励
     pub reward: u64,
+    // 保护期
+    pub protection: u64,
+}
+
+impl Default for ValidatorInfo {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            id: 0,
+            owner: Pubkey::default(),
+            stake: 0,
+            bounds: 0,
+            reward: 0,
+            protection: VALIDATOR_PROTECTION,
+        }
+    }
 }
 
 impl ValidatorInfo {
@@ -123,7 +143,7 @@ impl ValidatorInfo {
 
 #[zero_copy(unsafe)]
 #[repr(packed)]
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct MinerInfo {
     pub owner: Pubkey,
     pub id: u8,
@@ -132,6 +152,22 @@ pub struct MinerInfo {
     pub reward: u64,
     // 上一个周期的权重
     pub last_weight: u64,
+    // 保护期
+    pub protection: u64,
+}
+
+impl Default for MinerInfo {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            owner: Pubkey::default(),
+            id: 0,
+            stake: 0,
+            reward: 0,
+            last_weight: 0,
+            protection: MINER_PROTECTION,
+        }
+    }
 }
 
 impl MinerInfo {

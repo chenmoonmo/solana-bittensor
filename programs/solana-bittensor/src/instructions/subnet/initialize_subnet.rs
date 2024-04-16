@@ -10,10 +10,8 @@ use anchor_spl::{
 pub const SUBNET_REGISTER_FEE: u64 = 10 * 1_000_000_000;
 
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
-    // TODO: 验证注册费用 子网周期初始化
-    // let timestamp = Clock::get()?.unix_timestamp;
-
     let tao_balance = ctx.accounts.user_tao_ata.amount;
+
     require!(
         tao_balance >= SUBNET_REGISTER_FEE,
         ErrorCode::NotEnoughBalance
@@ -43,7 +41,9 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
         .subnet_state
         .load_init()?
         .initialize(subnet_id, owner);
-    ctx.accounts.subnet_epoch.load_init()?;
+
+    ctx.accounts.subnet_epoch.load_init()?.epoch_start_timestamp = Clock::get()?.unix_timestamp;
+
     Ok(())
 }
 

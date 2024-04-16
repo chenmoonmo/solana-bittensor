@@ -426,7 +426,7 @@ describe("solana-bittensor", () => {
     );
 
     const minersState = await program.account.minerState.all();
-    // TODO:
+
     console.log(
       "miners state",
       minersState.map((item) => {
@@ -578,21 +578,31 @@ describe("solana-bittensor", () => {
     console.log(
       "miners state: ",
       subnetsState.map((item) => {
-        return item.account.miners.map((item) => item.reward.toString());
+        return item.account.miners
+          .slice(0, 3)
+          .map((item) =>
+            [item.reward.toString(), item.protection.toString()].toString()
+          );
       })
     );
 
     console.log(
       "validators state: ",
       subnetsState.map((item) => {
-        return item.account.validators.map((item) => item.reward.toString());
+        return item.account.validators
+          .slice(0, 3)
+          .map((item) =>
+            [item.reward.toString(), item.protection.toString()].toString()
+          );
       })
     );
 
     console.log(
       "weights state: ",
       weightsState.map((item) => {
-        return item.account.minersWeights.map((item) => item.toString());
+        return item.account.minersWeights
+          .slice(0, 3)
+          .map((item) => item.slice(0, 3).toString());
       })
     );
   });
@@ -770,61 +780,39 @@ describe("solana-bittensor", () => {
           })
       )
     );
-
-    // await Promise.all(
-    //   miners.map((miner) =>
-    //     program.methods
-    //       .minerUnstakes(new anchor.BN(1 * 10 ** 9))
-    //       .accounts({
-    //         taoMint: taoMint,
-    //         taoStake: miner.subnet.subnetTaoStake,
-    //         owner: miner.owner.publicKey,
-    //         systemProgram: anchor.web3.SystemProgram.programId,
-    //         tokenProgram: token.TOKEN_PROGRAM_ID,
-    //         subnetState: miner.subnet.subnetPDA,
-    //         userTaoAta: miner.taoATA,
-    //         minerState: miner.minerPDA,
-    //       })
-    //       .signers([miner.owner])
-    //       .rpc()
-    //       .catch((err) => {
-    //         console.log("Error: ", err);
-    //       })
-    //   )
-    // );
   });
 
-  it("test", async () => {
-    await program.methods
-      .test()
-      .accounts({
-        subnetState: subnets[0].subnetPDA,
-      })
-      .remainingAccounts(
-        new Array(38).fill(0).map((_) => {
-          return {
-            pubkey: validators[0].validatorPDA,
-            isWritable: true,
-            isSigner: false,
-          };
-        })
-      )
-      .rpc()
-      .catch((err) => {
-        console.log("Error: ", err);
-      });
+  // it("test", async () => {
+  //   await program.methods
+  //     .test()
+  //     .accounts({
+  //       subnetState: subnets[0].subnetPDA,
+  //     })
+  //     .remainingAccounts(
+  //       new Array(38).fill(0).map((_) => {
+  //         return {
+  //           pubkey: validators[0].validatorPDA,
+  //           isWritable: true,
+  //           isSigner: false,
+  //         };
+  //       })
+  //     )
+  //     .rpc()
+  //     .catch((err) => {
+  //       console.log("Error: ", err);
+  //     });
 
-    const minersState = await program.account.validatorState.all();
+  //   const minersState = await program.account.validatorState.all();
 
-    console.log(
-      "validators state",
-      minersState.map((item) => {
-        return {
-          id: item.account.id,
-          owner: item.account.owner.toBase58(),
-          stake: item.account.stake.toString(),
-        };
-      })
-    );
-  });
+  //   console.log(
+  //     "validators state",
+  //     minersState.map((item) => {
+  //       return {
+  //         id: item.account.id,
+  //         owner: item.account.owner.toBase58(),
+  //         stake: item.account.stake.toString(),
+  //       };
+  //     })
+  //   );
+  // });
 });
