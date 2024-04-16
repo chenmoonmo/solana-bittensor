@@ -8,9 +8,9 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
     let subnet_epoch = &mut ctx.accounts.subnet_epoch.load_mut()?;
 
     let mut miner_weights = Box::new([0; MAX_MINER_NUMBER]);
-    let mut validator_bonds = Box::new([0; MAX_VALIDATOR_NUMBER]);
+    let mut validator_bounds = Box::new([0; MAX_VALIDATOR_NUMBER]);
 
-    let mut total_bonds = 0u64;
+    let mut total_bounds = 0u64;
     let mut total_weights = 0u64;
 
     for i in 0..MAX_VALIDATOR_NUMBER {
@@ -26,8 +26,8 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
         }
 
         let bond = total_stake * total_weight / MAX_WEIGHT;
-        total_bonds += bond;
-        validator_bonds[i] = bond;
+        total_bounds += bond;
+        validator_bounds[i] = bond;
     }
 
     let half_reward = bittensor_state.subnets[subnet_state.id as usize].distribute_reward / 2;
@@ -42,12 +42,12 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
     }
 
     for i in 0..MAX_VALIDATOR_NUMBER {
-        let reward = (validator_bonds[i] as u128)
+        let reward = (validator_bounds[i] as u128)
             .checked_mul(half_reward as u128)
             .unwrap()
-            .checked_div(total_bonds as u128)
+            .checked_div(total_bounds as u128)
             .unwrap() as u64;
-        subnet_state.validators[i].bonds = validator_bonds[i];
+        subnet_state.validators[i].bounds = validator_bounds[i];
         subnet_state.validators[i].reward += reward;
     }
 
@@ -59,7 +59,7 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
     Ok(())
 }
 
-pub struct ValidatorBonds {
+pub struct Validatorbounds {
     pub validator_id: u8,
     pub bond: u64,
 }

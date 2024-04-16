@@ -112,7 +112,7 @@ pub struct ValidatorInfo {
     // 质押数量
     pub stake: u64,
     // 上一个周期的工作量
-    pub bonds: u64,
+    pub bounds: u64,
     // 待提取奖励
     pub reward: u64,
 }
@@ -130,6 +130,8 @@ pub struct MinerInfo {
     pub stake: u64,
     // 待提取奖励
     pub reward: u64,
+    // 上一个周期的权重
+    pub last_weight: u64,
 }
 
 impl MinerInfo {

@@ -1,3 +1,4 @@
+use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
 
@@ -11,6 +12,12 @@ pub const SUBNET_REGISTER_FEE: u64 = 10 * 1_000_000_000;
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
     // TODO: 验证注册费用 子网周期初始化
     // let timestamp = Clock::get()?.unix_timestamp;
+
+    let tao_balance = ctx.accounts.user_tao_ata.amount;
+    require!(
+        tao_balance >= SUBNET_REGISTER_FEE,
+        ErrorCode::NotEnoughBalance
+    );
 
     token::burn(
         CpiContext::new(
