@@ -36,52 +36,7 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         MINER_REGISTER_FEE,
     )?;
 
-    if subnet_state.last_miner_id == i8::try_from(MAX_MINER_NUMBER - 1).unwrap() {
-        // 淘汰 前一个周期 bounds 最低且不在保护期的矿工
-
-        let mut min_miner_id = 0;
-
-        for miner in subnet_state.miners {
-            if miner.last_weight < subnet_state.miners[min_miner_id as usize].last_weight
-                && subnet_state.miners[min_miner_id as usize].protection == 0
-            {
-                min_miner_id = miner.id;
-            }
-        }
-
-        // 在 remaining accounts 中找到对应的矿工账户
-        // 修改该矿工的状态
-        // 如果用户没有传入账户，那么报错
-        let mut is_find_current_account = false;
-
-        for account in ctx.remaining_accounts.iter() {
-            let mut data = account.try_borrow_mut_data()?;
-            let mut account_to_write: MinerState =
-                MinerState::try_deserialize(&mut data.as_ref()).expect("Error Deserializing Data");
-
-            if account_to_write.id == min_miner_id {
-                account_to_write.is_active = false;
-                account_to_write.try_serialize(&mut data.as_mut())?;
-                is_find_current_account = true;
-                break;
-            }
-        }
-
-        require!(
-            is_find_current_account,
-            ErrorCode::CantFindAtRemainingAccounts
-        );
-
-        // TODO: 没领取的奖励怎么办
-        ctx.accounts.miner_state.id = min_miner_id;
-        ctx.accounts.miner_state.subnet_id = subnet_state.id;
-        ctx.accounts.miner_state.owner = ctx.accounts.owner.key();
-        ctx.accounts.miner_state.is_active = true;
-        subnet_state.miners[min_miner_id as usize].stake = 0;
-        subnet_state.miners[min_miner_id as usize].last_weight = 0;
-        subnet_state.miners[min_miner_id as usize].reward = 0;
-        subnet_state.miners[min_miner_id as usize].owner = ctx.accounts.owner.key();
-    } else {
+    if subnet_state.last_miner_id < i8::try_from(MAX_MINER_NUMBER - 1).unwrap() {
         let owner = ctx.accounts.owner.key();
 
         let miner_id = subnet_state.create_miner(owner);
@@ -89,6 +44,34 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         ctx.accounts
             .miner_state
             .initialize(miner_id, subnet_state.id, owner);
+    } else {
+        // 淘汰 前一个周期 bounds 最低且不在保护期的矿工
+
+        let subnet_id = subnet_state.id;
+
+        match subnet_state
+            .miners
+            .iter_mut()
+            .filter(|v| v.protection == 0)
+            .min_by_key(|v| v.last_weight)
+        {
+            Some(min_miner) => {
+                ctx.accounts.miner_state.id = min_miner.id;
+                ctx.accounts.miner_state.subnet_id = subnet_id;
+                ctx.accounts.miner_state.owner = ctx.accounts.owner.key();
+                ctx.accounts.miner_state.is_active = true;
+
+                min_miner.stake = 0;
+                min_miner.last_weight = 0;
+                min_miner.reward = 0;
+                min_miner.owner = ctx.accounts.owner.key();
+            }
+            None => {
+                require!(false, ErrorCode::NoMinerCanReplace)
+            }
+        }
+
+        // TODO: 没领取的奖励怎么办
     }
 
     Ok(())
@@ -107,7 +90,7 @@ pub struct InitializeSubnetMiner<'info> {
     pub subnet_state: AccountLoader<'info, SubnetState>,
 
     #[account(
-        init,
+        init_if_needed,
         space = 10 * 1024,
         payer = owner,
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],

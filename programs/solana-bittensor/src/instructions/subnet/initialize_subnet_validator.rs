@@ -1,8 +1,10 @@
 use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
-
-use anchor_spl::token::{self, Burn, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::{
+    token,
+    token::{Burn, Mint, Token, TokenAccount, Transfer},
+};
 
 pub const VALIDATOR_REGISTER_FEE: u64 = 1 * 1_000_000_000;
 
@@ -11,8 +13,9 @@ pub fn initialize_subnet_validator(
     stake_amount: u64,
 ) -> Result<()> {
     let tao_balance = ctx.accounts.user_tao_ata.amount;
+
     require!(
-        tao_balance >= VALIDATOR_REGISTER_FEE,
+        tao_balance >= VALIDATOR_REGISTER_FEE + stake_amount,
         ErrorCode::NotEnoughBalance
     );
 
@@ -47,67 +50,48 @@ pub fn initialize_subnet_validator(
                 },
             ),
             stake_amount,
-        );
+        )?;
     }
 
     let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
 
-    // 验证人已经满了
-    if subnet_state.last_validator_id == i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
-        // 淘汰 前一个周期 bounds 最低且不在保护期的验证人
-
-        let mut min_validator_id = 0;
-
-        for validator in subnet_state.validators {
-            if validator.bounds < subnet_state.validators[min_validator_id as usize].bounds
-                && subnet_state.validators[min_validator_id as usize].protection == 0
-            {
-                min_validator_id = validator.id;
-            }
-        }
-
-        // 在 remaining accounts 中找到对应的验证人账户
-        // 修改该验证人的状态
-        let mut is_find_current_account = false;
-
-        for account in ctx.remaining_accounts.iter() {
-            let mut data = account.try_borrow_mut_data()?;
-            let mut account_to_write = ValidatorState::try_deserialize(&mut data.as_ref())
-                .expect("Error Deserializing Data");
-
-            if account_to_write.id == min_validator_id {
-                account_to_write.is_active = false;
-                account_to_write.bounds = 0;
-
-                account_to_write.try_serialize(&mut data.as_mut())?;
-                is_find_current_account = true;
-                break;
-            }
-        }
-
-        require!(
-            is_find_current_account,
-            ErrorCode::CantFindAtRemainingAccounts
-        );
-        // 将 subnet 的验证人替换为新的验证人
-
-        ctx.accounts.validator_state.id = min_validator_id;
-        ctx.accounts.validator_state.owner = ctx.accounts.owner.key();
-        ctx.accounts.validator_state.is_active = true;
-
-        subnet_state.validators[min_validator_id as usize].bounds = 0;
-        subnet_state.validators[min_validator_id as usize].stake = 0;
-        subnet_state.validators[min_validator_id as usize].reward = 0;
-        subnet_state.validators[min_validator_id as usize].owner = ctx.accounts.owner.key();
-    } else {
+    // 验证人没满
+    if subnet_state.last_validator_id < i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
         let owner = ctx.accounts.owner.key();
 
-        let validator_id = subnet_state.create_validator(owner, stake_amount);
+        let validator_id =
+            subnet_state.create_validator(owner, stake_amount, ctx.accounts.validator_state.key());
 
         let validator_state = &mut ctx.accounts.validator_state;
         validator_state.id = validator_id;
         validator_state.owner = owner;
         validator_state.stake = stake_amount;
+    } else {
+        // 如果验证人已经满了
+        // 淘汰 前一个周期 bounds 最低且不在保护期的验证人
+
+        match subnet_state
+            .validators
+            .iter_mut()
+            .filter(|v| v.protection == 0)
+            .min_by_key(|v| v.bounds)
+        {
+            Some(min_validator) => {
+                // 修改该验证人的状态
+                // 将 subnet 的验证人替换为新的验证人
+                ctx.accounts.validator_state.id = min_validator.id;
+                ctx.accounts.validator_state.owner = ctx.accounts.owner.key();
+                ctx.accounts.validator_state.is_active = true;
+
+                min_validator.bounds = 0;
+                min_validator.stake = 0;
+                min_validator.reward = 0;
+                min_validator.owner = ctx.accounts.owner.key();
+            }
+            None => {
+                require!(false, ErrorCode::NoValidatorCanReplace)
+            }
+        }
     }
 
     Ok(())
@@ -126,7 +110,7 @@ pub struct InitializeSubnetValidator<'info> {
     pub subnet_state: AccountLoader<'info, SubnetState>,
 
     #[account(
-        init,
+        init_if_needed,
         space = 1024 * 10,
         payer = owner,
         seeds = [b"validator_state",subnet_state.key().as_ref(),owner.key().as_ref()],
@@ -144,6 +128,7 @@ pub struct InitializeSubnetValidator<'info> {
 
     // 质押代币存储账户
     #[account(
+        mut,
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,

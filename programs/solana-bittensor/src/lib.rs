@@ -20,6 +20,7 @@ pub mod solana_bittensor {
         instructions::initialize_subnet(ctx)
     }
 
+    // 测试用 mint
     pub fn mint(ctx: Context<MintTao>) -> Result<()> {
         instructions::mint_tao(ctx)
     }

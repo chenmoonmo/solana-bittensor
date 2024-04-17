@@ -14,4 +14,11 @@ pub enum ErrorCode {
     NotBittensorValidator,
     #[msg("Cant find account at remaining accounts.")]
     CantFindAtRemainingAccounts,
+    #[msg("Validator not enough bounds.")]
+    ValidatorNotEnoughBounds,
+    #[msg("No miner can replace.")]
+    NoMinerCanReplace,
+    #[msg("No validator can replace.")]
+    NoValidatorCanReplace,
+
 }

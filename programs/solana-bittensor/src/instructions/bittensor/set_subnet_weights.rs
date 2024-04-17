@@ -4,7 +4,6 @@ use anchor_lang::prelude::*;
 
 pub fn set_subnet_weights(ctx: Context<SetSubnetWeights>, weights: Vec<u64>) -> Result<()> {
     let validators = ctx.accounts.bittensor_state.load_mut()?.validators;
-    let subnet_id = ctx.accounts.subnet_state.load()?.id;
     let validator_id = ctx.accounts.validator_state.id;
 
     let sum_weights = weights.iter().sum::<u64>();
@@ -16,7 +15,7 @@ pub fn set_subnet_weights(ctx: Context<SetSubnetWeights>, weights: Vec<u64>) -> 
 
     let is_bittensor_validator = validators
         .iter()
-        .any(|v| v.validator_id == validator_id && v.subnet_id == subnet_id);
+        .any(|v| v.validator_state == ctx.accounts.validator_state.key());
     // if validator is not a bittensor validator, return error
     require!(is_bittensor_validator, ErrorCode::NotBittensorValidator);
 

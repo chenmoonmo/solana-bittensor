@@ -32,7 +32,6 @@ impl BittensorState {
 
     pub fn create_subnet(&mut self, owner: Pubkey) -> u8 {
         let id = (self.last_subnet_id + 1) as u8;
-
         self.subnets[id as usize].id = id;
         self.subnets[id as usize].owner = owner;
         self.subnets[id as usize].distribute_reward = 0;
@@ -46,9 +45,11 @@ impl BittensorState {
     pub fn create_bittensor_validator(
         &mut self,
         owner: Pubkey,
+        validator_state: Pubkey,
         subnet_id: u8,
         validator_id: u8,
         stake: u64,
+        bounds: u64,
     ) -> u8 {
         let id = (self.last_validator_id + 1) as u8;
         self.validators[id as usize] = BittensorValidatorInfo {
@@ -57,6 +58,9 @@ impl BittensorState {
             subnet_id,
             stake,
             owner,
+            bounds,
+            protection: 1,
+            validator_state,
         };
         self.last_validator_id += 1;
         id
@@ -95,9 +99,10 @@ pub struct BittensorValidatorInfo {
     pub subnet_id: u8,
     // 质押数量
     pub stake: u64,
+    //工作量
+    pub bounds: u64,
     pub owner: Pubkey,
-}
-
-impl BittensorValidatorInfo {
-    pub const LEN: usize = 1 + 8 + 32;
+    // 保护期
+    pub protection: u64,
+    pub validator_state: Pubkey,
 }

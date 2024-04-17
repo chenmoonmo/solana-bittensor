@@ -18,6 +18,8 @@ pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> 
         amount,
     )?;
 
+    // get account data form publickey
+
     let subnet_id = ctx.accounts.subnet_state.load()?.id;
     let validator_id = ctx.accounts.validator_state.id;
 

@@ -24,13 +24,6 @@ pub struct SubnetState {
 }
 
 impl SubnetState {
-    pub const LEN: usize = 1
-        + 8
-        + 8
-        + 8
-        + ValidatorInfo::LEN * MAX_VALIDATOR_NUMBER
-        + MinerInfo::LEN * MAX_MINER_NUMBER;
-
     pub fn initialize(&mut self, id: u8, owner: Pubkey) -> () {
         let validators = [ValidatorInfo::default(); MAX_VALIDATOR_NUMBER];
         let miners = [MinerInfo::default(); MAX_MINER_NUMBER];
@@ -47,11 +40,12 @@ impl SubnetState {
         self.last_validator_id = -1;
     }
 
-    pub fn create_validator(&mut self, owner: Pubkey, stake:u64 ) -> u8 {
+    pub fn create_validator(&mut self, owner: Pubkey, stake: u64,pda: Pubkey) -> u8 {
         let id = (self.last_validator_id + 1) as u8;
         self.validators[id as usize].id = id;
         self.validators[id as usize].owner = owner;
         self.validators[id as usize].stake = stake;
+        self.validators[id as usize].pda = pda;
         self.last_validator_id = id as i8;
         id
     }
@@ -121,6 +115,7 @@ pub struct ValidatorInfo {
     pub reward: u64,
     // 保护期
     pub protection: u64,
+    pub pda: Pubkey,
 }
 
 impl Default for ValidatorInfo {
@@ -133,6 +128,7 @@ impl Default for ValidatorInfo {
             bounds: 0,
             reward: 0,
             protection: VALIDATOR_PROTECTION,
+            pda: Pubkey::default(),
         }
     }
 }

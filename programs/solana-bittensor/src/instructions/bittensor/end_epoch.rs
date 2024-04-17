@@ -32,6 +32,13 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
         bittensor_state.reward_subnet(i as u8, reward)
     }
 
+    // 如果主网验证人的保护期大于0，则减1
+    bittensor_state.validators.iter_mut().for_each(|v| {
+        if v.protection > 0 {
+            v.protection -= 1;
+        }
+    });
+
     let timestamp = Clock::get()?.unix_timestamp;
 
     bittensor_epoch.initialize_epoch(timestamp);

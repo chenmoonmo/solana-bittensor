@@ -51,8 +51,16 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
             .unwrap()
             .checked_div(total_bounds as u128)
             .unwrap() as u64;
+
         subnet_state.validators[i].bounds = validator_bounds[i];
         subnet_state.validators[i].reward += reward;
+
+        // 更新主网验证人的工作量
+        if let Some(v) = bittensor_state.validators.iter_mut().find(|v| {
+            v.validator_id == subnet_state.validators[i].id && v.subnet_id == subnet_state.id
+        }) {
+            v.bounds = validator_bounds[i];
+        }
 
         if subnet_state.validators[i].protection > 0 {
             subnet_state.validators[i].protection -= 1;
@@ -62,6 +70,7 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
     // subnet_state.distribute_reward 好像就没用
     subnet_state.distribute_reward = 0;
     bittensor_state.subnets[subnet_state.id as usize].distribute_reward = 0;
+
     subnet_epoch.initialize(timestamp);
 
     Ok(())
