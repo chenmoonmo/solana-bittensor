@@ -65,6 +65,8 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
                 min_miner.last_weight = 0;
                 min_miner.reward = 0;
                 min_miner.owner = ctx.accounts.owner.key();
+                min_miner.protection = 1;
+                // min_miner.pda = ctx.accounts.miner_state.key();
             }
             None => {
                 require!(false, ErrorCode::NoMinerCanReplace)

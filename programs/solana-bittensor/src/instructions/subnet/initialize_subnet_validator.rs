@@ -86,7 +86,9 @@ pub fn initialize_subnet_validator(
                 min_validator.bounds = 0;
                 min_validator.stake = 0;
                 min_validator.reward = 0;
+                min_validator.protection = 1;
                 min_validator.owner = ctx.accounts.owner.key();
+                min_validator.pda = ctx.accounts.validator_state.key();
             }
             None => {
                 require!(false, ErrorCode::NoValidatorCanReplace)

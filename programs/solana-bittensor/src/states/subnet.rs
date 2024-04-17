@@ -40,7 +40,7 @@ impl SubnetState {
         self.last_validator_id = -1;
     }
 
-    pub fn create_validator(&mut self, owner: Pubkey, stake: u64,pda: Pubkey) -> u8 {
+    pub fn create_validator(&mut self, owner: Pubkey, stake: u64, pda: Pubkey) -> u8 {
         let id = (self.last_validator_id + 1) as u8;
         self.validators[id as usize].id = id;
         self.validators[id as usize].owner = owner;
@@ -54,6 +54,7 @@ impl SubnetState {
         let id = (self.last_miner_id + 1) as u8;
         self.miners[id as usize].id = id;
         self.miners[id as usize].owner = owner;
+        // self.miners[id as usize].pda = pda;
         self.last_miner_id = id as i8;
         id
     }
@@ -133,16 +134,12 @@ impl Default for ValidatorInfo {
     }
 }
 
-impl ValidatorInfo {
-    pub const LEN: usize = 8 + 32 + 1 + 8 + 8;
-}
-
 #[zero_copy(unsafe)]
 #[repr(packed)]
 #[derive(Debug)]
 pub struct MinerInfo {
-    pub owner: Pubkey,
     pub id: u8,
+    pub owner: Pubkey,
     pub stake: u64,
     // 待提取奖励
     pub reward: u64,
@@ -150,6 +147,7 @@ pub struct MinerInfo {
     pub last_weight: u64,
     // 保护期
     pub protection: u64,
+    // pub pda: Pubkey,
 }
 
 impl Default for MinerInfo {
@@ -162,10 +160,7 @@ impl Default for MinerInfo {
             reward: 0,
             last_weight: 0,
             protection: MINER_PROTECTION,
+            // pda: Pubkey::default(),
         }
     }
-}
-
-impl MinerInfo {
-    pub const LEN: usize = 8 + 32 + 1 + 8 + 8;
 }

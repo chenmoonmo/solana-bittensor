@@ -29,7 +29,7 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
             .checked_div(total_weight as u128)
             .unwrap_or(0) as u64;
 
-        bittensor_state.reward_subnet(i as u8, reward)
+        bittensor_state.reward_subnet(i as u8, reward, subnet_weights[i])
     }
 
     // 如果主网验证人的保护期大于0，则减1

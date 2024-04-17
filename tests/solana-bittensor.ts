@@ -293,6 +293,7 @@ describe("solana-bittensor", () => {
         })
         .sort((a, b) => a.id - b.id)
     );
+
     console.log(
       "subnets state",
       subnetsState
@@ -432,9 +433,7 @@ describe("solana-bittensor", () => {
       });
   });
 
-  return;
-
-  it("Is initlialized Miner", async () => {
+  it("Is initlialized miner", async () => {
     miners = users
       .map((user) => {
         return subnets.map((subnet, index) =>
@@ -733,6 +732,174 @@ describe("solana-bittensor", () => {
     console.log(
       "users balance: ",
       usersBalance.map((item) => item.value.uiAmount)
+    );
+  });
+
+  it("register validator when validators is full", async () => {
+    let newUser = await createUser(taoMint);
+    let newValidator = generateValidator(
+      newUser.keypair,
+      newUser.taoATA,
+      subnets[0],
+      0
+    );
+
+    await program.methods
+      .initializeSubnetValidator(new anchor.BN(2 * 10 ** 9))
+      .accounts({
+        bittensorState: bittensorPDA,
+        taoMint: taoMint,
+        userTaoAta: newValidator.taoATA,
+        validatorState: newValidator.validatorPDA,
+        taoStake: newValidator.subnet.subnetTaoStake,
+        subnetState: newValidator.subnet.subnetPDA,
+        owner: newValidator.owner.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: token.TOKEN_PROGRAM_ID,
+      })
+      .signers([newValidator.owner])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    let subnet0State = await program.account.subnetState.fetch(
+      subnets[0].subnetPDA
+    );
+
+    let validators_ = subnet0State.validators.map((item) =>
+      item.pda.toBase58()
+    );
+
+    console.log(
+      "subnet 0 validators: ",
+      validators_,
+      newValidator.validatorPDA.toBase58()
+    );
+
+    const validatorsState = await program.account.validatorState.fetch(
+      newValidator.validatorPDA
+    );
+
+    console.log("validator", validatorsState);
+
+    let validatorWasKnockedOut = validators.find(
+      (item) =>
+        item.subnetID == 0 &&
+        !validators_.includes(item.validatorPDA.toBase58())
+    );
+
+    await program.methods
+      .initializeSubnetValidator(new anchor.BN(2 * 10 ** 9))
+      .accounts({
+        bittensorState: bittensorPDA,
+        taoMint: taoMint,
+        userTaoAta: validatorWasKnockedOut.taoATA,
+        validatorState: validatorWasKnockedOut.validatorPDA,
+        taoStake: validatorWasKnockedOut.subnet.subnetTaoStake,
+        subnetState: validatorWasKnockedOut.subnet.subnetPDA,
+        owner: validatorWasKnockedOut.owner.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: token.TOKEN_PROGRAM_ID,
+      })
+      .signers([validatorWasKnockedOut.owner])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    subnet0State = await program.account.subnetState.fetch(
+      subnets[0].subnetPDA
+    );
+
+    validators_ = subnet0State.validators.map((item) => item.pda.toBase58());
+
+    console.log(
+      "subnet 0 validators: ",
+      validators_,
+      validatorWasKnockedOut.validatorPDA.toBase58()
+    );
+
+    const validatorWasKnockedOutState =
+      await program.account.validatorState.fetch(
+        validatorWasKnockedOut.validatorPDA
+      );
+
+    console.log("validatorWasKnockedOutState", validatorWasKnockedOutState);
+  });
+
+  it("register miner when miners is full", async () => {
+    let newUser = await createUser(taoMint);
+    let newMiner = generateMiner(
+      newUser.keypair,
+      newUser.taoATA,
+      subnets[0],
+      0
+    );
+
+    await program.methods
+      .initializeSubnetMiner()
+      .accounts({
+        bittensorState: bittensorPDA,
+        taoMint: taoMint,
+        userTaoAta: newMiner.taoATA,
+        minerState: newMiner.minerPDA,
+        subnetState: newMiner.subnet.subnetPDA,
+        owner: newMiner.owner.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: token.TOKEN_PROGRAM_ID,
+      })
+      .signers([newMiner.owner])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    let subnet0State = await program.account.subnetState.fetch(
+      subnets[0].subnetPDA
+    );
+
+    let miners_ = subnet0State.miners.map((item) => item.owner.toBase58());
+
+    console.log(
+      "subnet 0 miners: ",
+      miners_,
+      newMiner.owner.publicKey.toBase58()
+    );
+
+    let minerWasKnockedOut = miners.find(
+      (item) =>
+        item.subnetID == 0 && !miners_.includes(item.owner.publicKey.toBase58())
+    );
+
+    await program.methods
+      .initializeSubnetMiner()
+      .accounts({
+        bittensorState: bittensorPDA,
+        taoMint: taoMint,
+        userTaoAta: minerWasKnockedOut.taoATA,
+        minerState: minerWasKnockedOut.minerPDA,
+        subnetState: minerWasKnockedOut.subnet.subnetPDA,
+        owner: minerWasKnockedOut.owner.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: token.TOKEN_PROGRAM_ID,
+      })
+      .signers([minerWasKnockedOut.owner])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    subnet0State = await program.account.subnetState.fetch(
+      subnets[0].subnetPDA
+    );
+
+    miners_ = subnet0State.miners.map((item) => item.owner.toBase58());
+
+    console.log(
+      "subnet 0 miners: ",
+      miners_,
+      minerWasKnockedOut.owner.publicKey.toBase58()
     );
   });
 

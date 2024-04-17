@@ -10,6 +10,8 @@ use anchor_spl::{
 pub const SUBNET_REGISTER_FEE: u64 = 10 * 1_000_000_000;
 
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
+    let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
+
     let tao_balance = ctx.accounts.user_tao_ata.amount;
 
     require!(
@@ -31,19 +33,43 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
 
     let owner = *ctx.accounts.owner.key;
 
-    let subnet_id = ctx
-        .accounts
-        .bittensor_state
-        .load_mut()?
-        .create_subnet(owner);
+    let last_subnet_id = bittensor_state.last_subnet_id;
 
-    ctx.accounts
-        .subnet_state
-        .load_init()?
-        .initialize(subnet_id, owner);
+    if last_subnet_id < i8::try_from(SUBNET_MAX_NUMBER - 1).unwrap() {
+        let subnet_id = bittensor_state.create_subnet(owner);
 
-    ctx.accounts.subnet_epoch.load_init()?.epoch_start_timestamp = Clock::get()?.unix_timestamp;
+        ctx.accounts
+            .subnet_state
+            .load_init()?
+            .initialize(subnet_id, owner);
 
+        ctx.accounts.subnet_epoch.load_init()?.epoch_start_timestamp = Clock::get()?.unix_timestamp;
+    } else {
+        // 找到不在保护期内的上个周期内得分最低的子网
+        match bittensor_state
+            .subnets
+            .iter_mut()
+            .filter(|s| s.protection == 0)
+            .min_by_key(|s| s.last_weight)
+        {
+            Some(min_subnet) => {
+                let subnet_id = min_subnet.id;
+                min_subnet.owner = owner;
+                min_subnet.distribute_reward = 0;
+                min_subnet.stake = 0;
+                min_subnet.protection = 1;
+
+                ctx.accounts
+                    .subnet_state
+                    .load_init()?
+                    .initialize(subnet_id, owner);
+
+                ctx.accounts.subnet_epoch.load_init()?.epoch_start_timestamp =
+                    Clock::get()?.unix_timestamp;
+            }
+            None => {}
+        }
+    }
     Ok(())
 }
 
@@ -57,7 +83,7 @@ pub struct InitializeSubnet<'info> {
     pub bittensor_state: AccountLoader<'info, BittensorState>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = owner,
         space = 10 * 1024,
         seeds = [b"subnet_state",owner.key().as_ref()],
@@ -66,7 +92,7 @@ pub struct InitializeSubnet<'info> {
     pub subnet_state: AccountLoader<'info, SubnetState>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = owner,
         space = 10 * 1024,
         seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
