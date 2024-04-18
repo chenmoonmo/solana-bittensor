@@ -347,6 +347,7 @@ describe("solana-bittensor", () => {
             validatorState: validator.validatorPDA,
             taoStake: validator.subnet.subnetTaoStake,
             subnetState: validator.subnet.subnetPDA,
+            subnetEpoch: validator.subnet.subnetWeightsPDA,
             owner: validator.owner.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -437,6 +438,7 @@ describe("solana-bittensor", () => {
         validatorState: newValidator.validatorPDA,
         taoStake: newValidator.subnet.subnetTaoStake,
         subnetState: newValidator.subnet.subnetPDA,
+        subnetEpoch: newValidator.subnet.subnetWeightsPDA,
         owner: newValidator.owner.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -469,6 +471,7 @@ describe("solana-bittensor", () => {
             userTaoAta: miner.taoATA,
             minerState: miner.minerPDA,
             subnetState: miner.subnet.subnetPDA,
+            subnetEpoch: miner.subnet.subnetWeightsPDA,
             owner: miner.owner.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -769,6 +772,7 @@ describe("solana-bittensor", () => {
         validatorState: newValidator.validatorPDA,
         taoStake: newValidator.subnet.subnetTaoStake,
         subnetState: newValidator.subnet.subnetPDA,
+        subnetEpoch: newValidator.subnet.subnetWeightsPDA,
         owner: newValidator.owner.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -814,6 +818,7 @@ describe("solana-bittensor", () => {
         validatorState: validatorWasKnockedOut.validatorPDA,
         taoStake: validatorWasKnockedOut.subnet.subnetTaoStake,
         subnetState: validatorWasKnockedOut.subnet.subnetPDA,
+        subnetEpoch: validatorWasKnockedOut.subnet.subnetWeightsPDA,
         owner: validatorWasKnockedOut.owner.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -861,6 +866,7 @@ describe("solana-bittensor", () => {
         userTaoAta: newMiner.taoATA,
         minerState: newMiner.minerPDA,
         subnetState: newMiner.subnet.subnetPDA,
+        subnetEpoch: newMiner.subnet.subnetWeightsPDA,
         owner: newMiner.owner.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -896,6 +902,7 @@ describe("solana-bittensor", () => {
         userTaoAta: minerWasKnockedOut.taoATA,
         minerState: minerWasKnockedOut.minerPDA,
         subnetState: minerWasKnockedOut.subnet.subnetPDA,
+        subnetEpoch: minerWasKnockedOut.subnet.subnetWeightsPDA,
         owner: minerWasKnockedOut.owner.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -1042,8 +1049,6 @@ describe("solana-bittensor", () => {
     console.log(validator.validatorPDA.toBase58());
   });
 
-  return;
-
   it("miners and validators unstake", async () => {
     // const validatorsState = await program.account.validatorState.all();
     // const minersState = await program.account.minerState.all();
@@ -1127,38 +1132,4 @@ describe("solana-bittensor", () => {
       )
     );
   });
-
-  // it("test", async () => {
-  //   await program.methods
-  //     .test()
-  //     .accounts({
-  //       subnetState: subnets[0].subnetPDA,
-  //     })
-  //     .remainingAccounts(
-  //       new Array(38).fill(0).map((_) => {
-  //         return {
-  //           pubkey: validators[0].validatorPDA,
-  //           isWritable: true,
-  //           isSigner: false,
-  //         };
-  //       })
-  //     )
-  //     .rpc()
-  //     .catch((err) => {
-  //       console.log("Error: ", err);
-  //     });
-
-  //   const minersState = await program.account.validatorState.all();
-
-  //   console.log(
-  //     "validators state",
-  //     minersState.map((item) => {
-  //       return {
-  //         id: item.account.id,
-  //         owner: item.account.owner.toBase58(),
-  //         stake: item.account.stake.toString(),
-  //       };
-  //     })
-  //   );
-  // });
 });

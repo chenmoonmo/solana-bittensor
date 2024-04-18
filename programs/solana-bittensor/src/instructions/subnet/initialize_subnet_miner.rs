@@ -65,6 +65,12 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
                 min_miner.owner = ctx.accounts.owner.key();
                 min_miner.protection = 1;
                 // min_miner.pda = ctx.accounts.miner_state.key();
+
+                // 将矿工的得分清零
+                ctx.accounts
+                    .subnet_epoch
+                    .load_mut()?
+                    .remove_miner_weights(min_miner.id);
             }
             None => {
                 require!(false, ErrorCode::NoMinerCanReplace)
@@ -88,6 +94,13 @@ pub struct InitializeSubnetMiner<'info> {
 
     #[account(mut)]
     pub subnet_state: AccountLoader<'info, SubnetState>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
 
     #[account(
         init_if_needed,

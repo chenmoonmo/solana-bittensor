@@ -88,6 +88,12 @@ pub fn initialize_subnet_validator(
                 min_validator.protection = 1;
                 min_validator.owner = ctx.accounts.owner.key();
                 min_validator.pda = ctx.accounts.validator_state.key();
+
+                // 将验证人的打分清零
+                ctx.accounts
+                    .subnet_epoch
+                    .load_mut()?
+                    .remove_weights(min_validator.id);
             }
             None => {
                 require!(false, ErrorCode::NoValidatorCanReplace)
@@ -109,6 +115,13 @@ pub struct InitializeSubnetValidator<'info> {
 
     #[account(mut)]
     pub subnet_state: AccountLoader<'info, SubnetState>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
 
     #[account(
         init_if_needed,

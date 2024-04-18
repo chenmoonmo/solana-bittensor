@@ -12,7 +12,7 @@ pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u64>) -> Re
     ctx.accounts
         .subnet_epoch
         .load_mut()?
-        .set_miner_weights(validator_id, weights);
+        .set_weights(validator_id, weights);
     Ok(())
 }
 
