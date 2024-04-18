@@ -65,6 +65,12 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
                     .subnet_epoch
                     .load_mut()?
                     .reset(Clock::get()?.unix_timestamp);
+
+                // 清除子网的得分
+                ctx.accounts
+                    .bittensor_epoch
+                    .load_mut()?
+                    .remove_subnet_weights(subnet_id);
             }
             None => {
                 require!(false, ErrorCode::NoSubnetCanReplace)
@@ -82,6 +88,13 @@ pub struct InitializeSubnet<'info> {
         bump,
     )]
     pub bittensor_state: AccountLoader<'info, BittensorState>,
+
+    #[account(
+        mut,
+        seeds = [b"bittensor_epoch", bittensor_state.key().as_ref()],
+        bump,
+    )]
+    pub bittensor_epoch: AccountLoader<'info, BittensorEpochState>,
 
     #[account(
         mut,

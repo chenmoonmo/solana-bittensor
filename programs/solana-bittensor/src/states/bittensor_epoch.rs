@@ -24,6 +24,12 @@ impl BittensorEpochState {
         self.weights[validator_id as usize] = [0; SUBNET_MAX_NUMBER];
     }
 
+    pub fn remove_subnet_weights(&mut self, subnet_id: u8) -> () {
+        for i in 0..BITTENSOR_VALIDATOR_MAX_NUMBER {
+            self.weights[i][subnet_id as usize] = 0;
+        }
+    }
+
     pub fn initialize_epoch(&mut self, epoch_start_timestamp: i64) -> () {
         self.epoch_start_timestamp = epoch_start_timestamp;
         self.weights = [[0; SUBNET_MAX_NUMBER]; BITTENSOR_VALIDATOR_MAX_NUMBER];
