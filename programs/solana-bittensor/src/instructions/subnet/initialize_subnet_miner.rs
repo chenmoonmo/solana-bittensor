@@ -59,7 +59,6 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
                 ctx.accounts.miner_state.id = min_miner.id;
                 ctx.accounts.miner_state.subnet_id = subnet_id;
                 ctx.accounts.miner_state.owner = ctx.accounts.owner.key();
-                ctx.accounts.miner_state.is_active = true;
 
                 min_miner.stake = 0;
                 min_miner.last_weight = 0;

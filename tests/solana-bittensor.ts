@@ -13,6 +13,7 @@ interface Subnet {
   subnetWeightsPDA: anchor.web3.PublicKey;
   subnetTaoStake: anchor.web3.PublicKey;
   userTaoAta: anchor.web3.PublicKey;
+  user: User;
 }
 
 interface Validator {
@@ -122,6 +123,7 @@ describe("solana-bittensor", () => {
       subnetWeightsPDA,
       subnetTaoStake,
       userTaoAta,
+      user,
     };
   }
 
@@ -257,8 +259,19 @@ describe("solana-bittensor", () => {
     subnets = users.slice(0, 3).map((item) => generateSubnet(item));
 
     await Promise.all(
-      subnets.map((item, index) =>
-        program.methods
+      subnets.map(async (item, index) => {
+        const register = await program.methods
+          .registerSubnet()
+          .accounts({
+            bittensorState: bittensorPDA,
+            subnetState: item.subnetPDA,
+            subnetEpoch: item.subnetWeightsPDA,
+            owner: users[index].keypair.publicKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .instruction();
+
+        return program.methods
           .initializeSubnet()
           .accounts({
             taoMint,
@@ -272,11 +285,12 @@ describe("solana-bittensor", () => {
             tokenProgram: token.TOKEN_PROGRAM_ID,
           })
           .signers([users[index].keypair])
+          .preInstructions([register])
           .rpc()
           .catch((err) => {
             console.log("Error: ", err);
-          })
-      )
+          });
+      })
     );
 
     const bittensor = await program.account.bittensorState.fetch(bittensorPDA);
@@ -900,6 +914,90 @@ describe("solana-bittensor", () => {
       "subnet 0 miners: ",
       miners_,
       minerWasKnockedOut.owner.publicKey.toBase58()
+    );
+  });
+
+  it("knock out subnet", async () => {
+    let newUser = await createUser(taoMint);
+    let newSubnet = generateSubnet(newUser);
+
+    // let subnetsState = await program.account.subnetState.all();
+    // console.log(subnetsState.map((item) => item.account.owner.toBase58()));
+
+    let bittensorState = await program.account.bittensorState.fetch(
+      bittensorPDA
+    );
+
+    console.log(
+      bittensorState.subnets.map((item) => item.subnetState.toBase58())
+    );
+
+    const register1 = await program.methods
+      .registerSubnet()
+      .accounts({
+        bittensorState: bittensorPDA,
+        subnetState: newSubnet.subnetPDA,
+        subnetEpoch: newSubnet.subnetWeightsPDA,
+        owner: newUser.keypair.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .instruction();
+
+    await program.methods
+      .initializeSubnet()
+      .accounts({
+        taoMint,
+        subnetState: newSubnet.subnetPDA,
+        bittensorState: bittensorPDA,
+        subnetEpoch: newSubnet.subnetWeightsPDA,
+        taoStake: newSubnet.subnetTaoStake,
+        owner: newUser.keypair.publicKey,
+        userTaoAta: newSubnet.userTaoAta,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: token.TOKEN_PROGRAM_ID,
+      })
+      .signers([newUser.keypair])
+      .preInstructions([register1])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    bittensorState = await program.account.bittensorState.fetch(bittensorPDA);
+
+    let subnets_ = bittensorState.subnets.map((item) =>
+      item.subnetState.toBase58()
+    );
+
+    console.log(subnets_);
+
+    let subnetWasKnockedOut = subnets.find(
+      (item) => !subnets_.includes(item.subnetPDA.toBase58())
+    );
+
+    await program.methods
+      .initializeSubnet()
+      .accounts({
+        taoMint,
+        subnetState: subnetWasKnockedOut.subnetPDA,
+        bittensorState: bittensorPDA,
+        subnetEpoch: subnetWasKnockedOut.subnetWeightsPDA,
+        taoStake: subnetWasKnockedOut.subnetTaoStake,
+        owner: subnetWasKnockedOut.user.keypair.publicKey,
+        userTaoAta: subnetWasKnockedOut.userTaoAta,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: token.TOKEN_PROGRAM_ID,
+      })
+      .signers([subnetWasKnockedOut.user.keypair])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+
+    bittensorState = await program.account.bittensorState.fetch(bittensorPDA);
+
+    console.log(
+      bittensorState.subnets.map((item) => item.subnetState.toBase58())
     );
   });
 

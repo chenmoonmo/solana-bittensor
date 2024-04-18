@@ -71,7 +71,7 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
     subnet_state.distribute_reward = 0;
     bittensor_state.subnets[subnet_state.id as usize].distribute_reward = 0;
 
-    subnet_epoch.initialize(timestamp);
+    subnet_epoch.end_epoch(timestamp);
 
     Ok(())
 }

@@ -20,5 +20,7 @@ pub enum ErrorCode {
     NoMinerCanReplace,
     #[msg("No validator can replace.")]
     NoValidatorCanReplace,
+    #[msg("No subnet can replace.")]
+    NoSubnetCanReplace,
 
 }

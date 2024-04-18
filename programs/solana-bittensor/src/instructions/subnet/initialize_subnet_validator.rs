@@ -81,7 +81,6 @@ pub fn initialize_subnet_validator(
                 // 将 subnet 的验证人替换为新的验证人
                 ctx.accounts.validator_state.id = min_validator.id;
                 ctx.accounts.validator_state.owner = ctx.accounts.owner.key();
-                ctx.accounts.validator_state.is_active = true;
 
                 min_validator.bounds = 0;
                 min_validator.stake = 0;

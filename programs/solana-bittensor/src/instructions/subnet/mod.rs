@@ -1,4 +1,5 @@
 pub mod initialize_subnet;
+pub mod register_subnet;
 pub mod initialize_subnet_miner;
 pub mod initialize_subnet_validator;
 pub mod miner_withdraw_stake;
@@ -10,6 +11,7 @@ pub mod end_subnet_epoch;
 pub mod set_miner_weights;
 
 pub use initialize_subnet::*;
+pub use register_subnet::*;
 pub use initialize_subnet_miner::*;
 pub use initialize_subnet_validator::*;
 pub use miner_withdraw_stake::*;

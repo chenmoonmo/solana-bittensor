@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-pub const SUBNET_MAX_NUMBER: usize = 32;
+pub const SUBNET_MAX_NUMBER: usize = 3;
 pub const BITTENSOR_VALIDATOR_MAX_NUMBER: usize = 32;
 pub const MAX_EPOCH_NUMBER: usize = 10;
 pub const EPOCH_DURATION: i64 = 60 * 60 * 1;
@@ -31,15 +31,15 @@ impl BittensorState {
         self.epoch_start_timestamp = timestamp;
     }
 
-    pub fn create_subnet(&mut self, owner: Pubkey) -> u8 {
+    pub fn create_subnet(&mut self, owner: Pubkey, subnet_state: Pubkey) -> u8 {
         let id = (self.last_subnet_id + 1) as u8;
         self.subnets[id as usize].id = id;
         self.subnets[id as usize].owner = owner;
         self.subnets[id as usize].distribute_reward = 0;
         self.subnets[id as usize].stake = 0;
         self.subnets[id as usize].protection = 1;
+        self.subnets[id as usize].subnet_state = subnet_state;
         self.last_subnet_id += 1;
-
         id
     }
 
@@ -79,6 +79,9 @@ impl BittensorState {
     pub fn reward_subnet(&mut self, subnet_id: u8, reward: u64, weight: u64) -> () {
         self.subnets[subnet_id as usize].distribute_reward += reward;
         self.subnets[subnet_id as usize].last_weight = weight;
+        if self.subnets[subnet_id as usize].protection > 0 {
+            self.subnets[subnet_id as usize].protection -= 1;
+        }
     }
 }
 
@@ -91,6 +94,7 @@ pub struct SubnetInfo {
     pub last_weight: u64,
     pub stake: u64,
     pub owner: Pubkey,
+    pub subnet_state: Pubkey,
     pub protection: u64,
 }
 

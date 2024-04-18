@@ -13,7 +13,7 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
     let mut subnet_weights = Box::new([0u64; SUBNET_MAX_NUMBER]);
 
     for i in 0..MAX_VALIDATOR_NUMBER {
-        for j in 0..MAX_VALIDATOR_NUMBER {
+        for j in 0..SUBNET_MAX_NUMBER {
             subnet_weights[j as usize] += (bittensor_epoch.weights[i][j] as u128)
                 .checked_mul(bittensor_state.validators[i].stake as u128)
                 .unwrap() as u64;

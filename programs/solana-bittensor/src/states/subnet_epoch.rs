@@ -24,7 +24,13 @@ impl Default for SubnetEpochState {
 }
 
 impl SubnetEpochState {
-    pub fn initialize(&mut self, epoch_start_timestamp: i64) -> () {
+    pub fn reset(&mut self, epoch_start_timestamp: i64) -> () {
+        self.epoch_start_timestamp = epoch_start_timestamp;
+        self.miners_weights = [[0; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER];
+        self.epoch_number += 1;
+    }
+
+    pub fn end_epoch(&mut self, epoch_start_timestamp: i64) -> () {
         self.epoch_start_timestamp = epoch_start_timestamp;
         self.miners_weights = [[0; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER];
         self.epoch_number += 1;

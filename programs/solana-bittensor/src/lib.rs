@@ -15,6 +15,10 @@ pub mod solana_bittensor {
         instructions::initialize_bittensor(ctx)
     }
 
+    pub fn register_subnet(ctx: Context<RegisterSubnet>) -> Result<()> {
+        instructions::register_subnet(ctx)
+    }
+
     // 注册子网
     pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
         instructions::initialize_subnet(ctx)

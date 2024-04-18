@@ -6,7 +6,6 @@ pub struct MinerState {
     pub subnet_id: u8,
     pub owner: Pubkey,
     pub stake: u64,
-    pub is_active: bool,
 }
 
 impl MinerState {
@@ -14,7 +13,6 @@ impl MinerState {
         self.id = id;
         self.subnet_id = subnet_id;
         self.owner = owner;
-        self.is_active = true;
     }
 
     pub fn add_stake(&mut self, amount: u64) -> () {

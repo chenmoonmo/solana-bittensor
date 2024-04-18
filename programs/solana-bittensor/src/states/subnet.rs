@@ -23,21 +23,31 @@ pub struct SubnetState {
     pub miners: [MinerInfo; MAX_MINER_NUMBER],
 }
 
-impl SubnetState {
-    pub fn initialize(&mut self, id: u8, owner: Pubkey) -> () {
-        let validators = [ValidatorInfo::default(); MAX_VALIDATOR_NUMBER];
-        let miners = [MinerInfo::default(); MAX_MINER_NUMBER];
+impl Default for SubnetState {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            id: 0,
+            owner: Pubkey::default(),
+            stake: 0,
+            last_validator_id: -1,
+            last_miner_id: -1,
+            miner_total_stake: 0,
+            validator_total_stake: 0,
+            distribute_reward: 0,
+            validators: [ValidatorInfo::default(); MAX_VALIDATOR_NUMBER],
+            miners: [MinerInfo::default(); MAX_MINER_NUMBER],
+        }
+    }
+}
 
-        self.id = id;
+impl SubnetState {
+    pub fn register(&mut self, owner: Pubkey) -> () {
         self.owner = owner;
-        self.stake = 0;
-        self.miner_total_stake = 0;
-        self.validator_total_stake = 0;
-        self.distribute_reward = 0;
-        self.validators = validators;
-        self.miners = miners;
-        self.last_miner_id = -1;
-        self.last_validator_id = -1;
+    }
+
+    pub fn initialize(&mut self, id: u8) -> () {
+        self.id = id;
     }
 
     pub fn create_validator(&mut self, owner: Pubkey, stake: u64, pda: Pubkey) -> u8 {
