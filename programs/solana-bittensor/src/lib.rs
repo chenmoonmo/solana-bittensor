@@ -80,10 +80,6 @@ pub mod solana_bittensor {
     pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
         instructions::validator_reward(ctx)
     }
-
-    pub fn test(ctx: Context<Test>) -> Result<()> {
-        instructions::test(ctx)
-    }
 }
 
 #[derive(Accounts)]

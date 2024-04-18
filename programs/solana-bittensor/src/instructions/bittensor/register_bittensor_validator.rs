@@ -40,13 +40,12 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
             .unwrap();
 
         // 如果新的验证人的工作量大于最小的验证人，则替换
-        let min_bounds = min_validator.bounds;
-        msg!("{},{}", bounds, min_bounds);
         require!(
             bounds > min_validator.bounds,
             ErrorCode::ValidatorNotEnoughBounds
         );
-
+        
+        // 替换验证人
         min_validator.stake = stake;
         min_validator.owner = owner;
         min_validator.bounds = bounds;
@@ -54,6 +53,9 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
         min_validator.subnet_id = subnet_id;
         min_validator.protection = 1;
         min_validator.validator_state = validator_state.key();
+
+        // 将验证人的打分清零
+        ctx.accounts.bittensor_epoch.load_mut()?.remove_weights(min_validator.id);
     }
     Ok(())
 }
@@ -66,6 +68,13 @@ pub struct RegisterBittensorValidator<'info> {
         bump,
     )]
     pub bittensor_state: AccountLoader<'info, BittensorState>,
+
+    #[account(
+        mut,
+        seeds = [b"bittensor_epoch", bittensor_state.key().as_ref()],
+        bump,
+    )]
+    pub bittensor_epoch: AccountLoader<'info, BittensorEpochState>,
 
     #[account(mut)]
     pub subnet_state: AccountLoader<'info, SubnetState>,

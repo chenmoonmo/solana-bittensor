@@ -536,6 +536,7 @@ describe("solana-bittensor", () => {
         return program.methods
           .registerBittensorValidator()
           .accounts({
+            bittensorEpoch: bittensorEpochPDA,
             bittensorState: bittensorPDA,
             subnetState: validator.subnet.subnetPDA,
             validatorState: validator.validatorPDA,
@@ -1008,11 +1009,14 @@ describe("solana-bittensor", () => {
       bittensorPDA
     );
 
-    console.log(bittensorState.validators.map((item) => item.bounds));
+    let bvs = bittensorState.validators.map((item) =>
+      item.validatorState.toBase58()
+    );
 
     await program.methods
       .registerBittensorValidator()
       .accounts({
+        bittensorEpoch: bittensorEpochPDA,
         bittensorState: bittensorPDA,
         subnetState: validator.subnet.subnetPDA,
         validatorState: validator.validatorPDA,
@@ -1024,10 +1028,19 @@ describe("solana-bittensor", () => {
       .catch((err) => {
         console.log("Error: ", err);
       });
+
+    bittensorState = await program.account.bittensorState.fetch(bittensorPDA);
+
+    let bvs2 = bittensorState.validators.map((item) =>
+      item.validatorState.toBase58()
+    );
+    console.log(bvs);
+    console.log(bvs2);
+    console.log(validator.validatorPDA.toBase58());
   });
 
   return;
-  
+
   it("miners and validators unstake", async () => {
     // const validatorsState = await program.account.validatorState.all();
     // const minersState = await program.account.minerState.all();
