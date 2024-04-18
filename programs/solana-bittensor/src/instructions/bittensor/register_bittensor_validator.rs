@@ -3,23 +3,23 @@ use crate::states::*;
 use anchor_lang::prelude::*;
 
 pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) -> Result<()> {
-    // TODO: 淘汰主网验证人
     let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
     let validator_state = &mut ctx.accounts.validator_state;
-
+    let subnet_state = &mut ctx.accounts.subnet_state.load()?;
     let validator_id = validator_state.id;
     let stake = validator_state.stake;
     let owner = validator_state.owner;
-    let bounds = validator_state.bounds;
-    let subnet_id = ctx.accounts.subnet_state.load()?.id;
-
-    let is_existed = bittensor_state
-        .validators
-        .iter()
-        .any(|v| v.validator_state == validator_state.key());
+    let bounds = subnet_state.get_validator_bounds(validator_id);
+    let subnet_id = subnet_state.id;
 
     // 已经主网验证人
-    require!(!is_existed, ErrorCode::ValidatorExist);
+    require!(
+        !bittensor_state
+            .validators
+            .iter()
+            .any(|v| v.validator_state == validator_state.key()),
+        ErrorCode::ValidatorExist
+    );
 
     if bittensor_state.last_validator_id < i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
         bittensor_state.create_bittensor_validator(
@@ -36,12 +36,14 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
             .validators
             .iter_mut()
             .filter(|v| v.protection == 0)
-            .min_by_key(|v| v.stake)
+            .min_by_key(|v| v.bounds)
             .unwrap();
 
         // 如果新的验证人的工作量大于最小的验证人，则替换
+        let min_bounds = min_validator.bounds;
+        msg!("{},{}", bounds, min_bounds);
         require!(
-            bounds > min_validator.stake,
+            bounds > min_validator.bounds,
             ErrorCode::ValidatorNotEnoughBounds
         );
 

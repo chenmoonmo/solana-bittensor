@@ -497,13 +497,13 @@ describe("solana-bittensor", () => {
 
   it("set miner weights", async () => {
     await Promise.all(
-      validators.map((validator) =>
+      validators.map((validator, i) =>
         program.methods
-          .setMinerWeights([
-            new anchor.BN(200),
-            new anchor.BN(300),
-            new anchor.BN(500),
-          ])
+          .setMinerWeights(
+            i == 0
+              ? [new anchor.BN(100), new anchor.BN(100), new anchor.BN(0)]
+              : [new anchor.BN(200), new anchor.BN(300), new anchor.BN(500)]
+          )
           .accounts({
             subnetState: validator.subnet.subnetPDA,
             subnetEpoch: validator.subnet.subnetWeightsPDA,
@@ -1001,7 +1001,33 @@ describe("solana-bittensor", () => {
     );
   });
 
+  it("knock bittensor validator", async () => {
+    let validator = validators[37];
+
+    let bittensorState = await program.account.bittensorState.fetch(
+      bittensorPDA
+    );
+
+    console.log(bittensorState.validators.map((item) => item.bounds));
+
+    await program.methods
+      .registerBittensorValidator()
+      .accounts({
+        bittensorState: bittensorPDA,
+        subnetState: validator.subnet.subnetPDA,
+        validatorState: validator.validatorPDA,
+        owner: validator.owner.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([validator.owner])
+      .rpc()
+      .catch((err) => {
+        console.log("Error: ", err);
+      });
+  });
+
   return;
+  
   it("miners and validators unstake", async () => {
     // const validatorsState = await program.account.validatorState.all();
     // const minersState = await program.account.minerState.all();

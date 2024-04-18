@@ -67,12 +67,13 @@ impl BittensorState {
         id
     }
 
-    pub fn validator_add_stake(&mut self, validator_id: u8, subnet_id: u8, amount: u64) -> () {
-        for validator in self.validators.iter_mut() {
-            if validator.validator_id == validator_id && validator.subnet_id == subnet_id {
-                validator.stake += amount;
-                break;
-            }
+    pub fn validator_add_stake(&mut self, validator_state: Pubkey, amount: u64) -> () {
+        if let Some(validator) = self
+            .validators
+            .iter_mut()
+            .find(|v| v.validator_state == validator_state)
+        {
+            validator.stake += amount;
         }
     }
 

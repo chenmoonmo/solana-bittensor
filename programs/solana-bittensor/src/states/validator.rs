@@ -6,7 +6,7 @@ pub struct ValidatorState {
     pub id: u8,
     pub owner: Pubkey,
     pub stake: u64,
-    pub bounds: u64,}
+}
 
 impl ValidatorState {
     pub fn add_stake(&mut self, amount: u64) {

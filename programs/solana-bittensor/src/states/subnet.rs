@@ -70,45 +70,27 @@ impl SubnetState {
     }
 
     pub fn miner_add_stake(&mut self, miner_id: u8, amount: u64) -> () {
-        for i in 0..MAX_MINER_NUMBER {
-            if self.miners[i].id == miner_id {
-                self.miners[i].stake += amount;
-                break;
-            }
-        }
+        self.miners[miner_id as usize].stake += amount;
         self.miner_total_stake += amount;
     }
 
     pub fn miner_remove_stake(&mut self, miner_id: u8, amount: u64) -> () {
-        for i in 0..MAX_MINER_NUMBER {
-            if self.miners[i].id == miner_id {
-                let stake = self.miners[i].stake;
-                msg!("{} {}", stake, amount);
-                self.miners[i].stake -= amount;
-                break;
-            }
-        }
+        self.miners[miner_id as usize].stake -= amount;
         self.miner_total_stake -= amount;
     }
 
     pub fn validator_add_stake(&mut self, validator_id: u8, amount: u64) -> () {
-        for i in 0..MAX_VALIDATOR_NUMBER {
-            if self.validators[i].id == validator_id {
-                self.validators[i].stake += amount;
-                break;
-            }
-        }
+        self.validators[validator_id as usize].stake += amount;
         self.validator_total_stake += amount;
     }
 
     pub fn validator_remove_stake(&mut self, validator_id: u8, amount: u64) -> () {
-        for i in 0..MAX_VALIDATOR_NUMBER {
-            if self.validators[i].id == validator_id {
-                self.validators[i].stake -= amount;
-                break;
-            }
-        }
+        self.validators[validator_id as usize].stake -= amount;
         self.validator_total_stake -= amount;
+    }
+
+    pub fn get_validator_bounds(&self, validator_id: u8) -> u64 {
+        self.validators[validator_id as usize].bounds
     }
 }
 
