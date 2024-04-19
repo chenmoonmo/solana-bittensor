@@ -18,7 +18,7 @@ pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> 
         amount,
     )?;
 
-    let subnet_id = ctx.accounts.subnet_state.load()?.id;
+    // get account data form publickey
     let validator_id = ctx.accounts.validator_state.id;
 
     ctx.accounts.validator_state.add_stake(amount);
@@ -31,7 +31,7 @@ pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> 
     ctx.accounts
         .bittensor_state
         .load_mut()?
-        .validator_add_stake(validator_id, subnet_id, amount);
+        .validator_add_stake(ctx.accounts.validator_state.key(), amount);
 
     Ok(())
 }

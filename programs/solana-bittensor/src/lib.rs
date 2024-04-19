@@ -15,18 +15,26 @@ pub mod solana_bittensor {
         instructions::initialize_bittensor(ctx)
     }
 
+    pub fn register_subnet(ctx: Context<RegisterSubnet>) -> Result<()> {
+        instructions::register_subnet(ctx)
+    }
+
     // 注册子网
     pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
         instructions::initialize_subnet(ctx)
     }
 
+    // 测试用 mint
     pub fn mint(ctx: Context<MintTao>) -> Result<()> {
         instructions::mint_tao(ctx)
     }
 
     // 注册子网验证人
-    pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> Result<()> {
-        instructions::initialize_subnet_validator(ctx)
+    pub fn initialize_subnet_validator(
+        ctx: Context<InitializeSubnetValidator>,
+        stake_amount: u64,
+    ) -> Result<()> {
+        instructions::initialize_subnet_validator(ctx, stake_amount)
     }
 
     // 注册子网矿工
@@ -71,10 +79,6 @@ pub mod solana_bittensor {
     // 9. 验证人提取奖励
     pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
         instructions::validator_reward(ctx)
-    }
-
-    pub fn test(ctx: Context<Test>) -> Result<()> {
-        instructions::test(ctx)
     }
 }
 

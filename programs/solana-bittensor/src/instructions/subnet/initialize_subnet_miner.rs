@@ -1,3 +1,4 @@
+use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
 
@@ -9,10 +10,12 @@ use anchor_spl::{
 const MINER_REGISTER_FEE: u64 = 1 * 1_000_000_000;
 
 pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()> {
-    // TODO:
-    // 矿工保护期初始化
+    let tao_balance = ctx.accounts.user_tao_ata.amount;
 
-    // TODO: 注册费用不足验证
+    require!(
+        tao_balance >= MINER_REGISTER_FEE,
+        ErrorCode::NotEnoughBalance
+    );
 
     let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
 
@@ -33,13 +36,47 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         MINER_REGISTER_FEE,
     )?;
 
-    let owner = ctx.accounts.owner.key();
+    if subnet_state.last_miner_id < i8::try_from(MAX_MINER_NUMBER - 1).unwrap() {
+        let owner = ctx.accounts.owner.key();
 
-    let miner_id = subnet_state.create_miner(owner);
+        let miner_id = subnet_state.create_miner(owner);
 
-    ctx.accounts
-        .miner_state
-        .initialize(miner_id, subnet_state.id, owner);
+        ctx.accounts
+            .miner_state
+            .initialize(miner_id, subnet_state.id, owner);
+    } else {
+        // 淘汰 前一个周期 bounds 最低且不在保护期的矿工
+        let subnet_id = subnet_state.id;
+
+        match subnet_state
+            .miners
+            .iter_mut()
+            .filter(|v| v.protection == 0)
+            .min_by_key(|v| v.last_weight)
+        {
+            Some(min_miner) => {
+                ctx.accounts.miner_state.id = min_miner.id;
+                ctx.accounts.miner_state.subnet_id = subnet_id;
+                ctx.accounts.miner_state.owner = ctx.accounts.owner.key();
+
+                min_miner.stake = 0;
+                min_miner.last_weight = 0;
+                min_miner.reward = 0;
+                min_miner.owner = ctx.accounts.owner.key();
+                min_miner.protection = 1;
+                // min_miner.pda = ctx.accounts.miner_state.key();
+
+                // 将矿工的得分清零
+                ctx.accounts
+                    .subnet_epoch
+                    .load_mut()?
+                    .remove_miner_weights(min_miner.id);
+            }
+            None => {
+                require!(false, ErrorCode::NoMinerCanReplace)
+            }
+        }
+    }
 
     Ok(())
 }
@@ -57,7 +94,14 @@ pub struct InitializeSubnetMiner<'info> {
     pub subnet_state: AccountLoader<'info, SubnetState>,
 
     #[account(
-        init,
+        mut,
+        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
+
+    #[account(
+        init_if_needed,
         space = 10 * 1024,
         payer = owner,
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],

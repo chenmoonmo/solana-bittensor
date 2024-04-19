@@ -13,7 +13,7 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
     let mut subnet_weights = Box::new([0u64; SUBNET_MAX_NUMBER]);
 
     for i in 0..MAX_VALIDATOR_NUMBER {
-        for j in 0..MAX_VALIDATOR_NUMBER {
+        for j in 0..SUBNET_MAX_NUMBER {
             subnet_weights[j as usize] += (bittensor_epoch.weights[i][j] as u128)
                 .checked_mul(bittensor_state.validators[i].stake as u128)
                 .unwrap() as u64;
@@ -29,8 +29,15 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
             .checked_div(total_weight as u128)
             .unwrap_or(0) as u64;
 
-        bittensor_state.reward_subnet(i as u8, reward)
+        bittensor_state.reward_subnet(i as u8, reward, subnet_weights[i])
     }
+
+    // 如果主网验证人的保护期大于0，则减1
+    bittensor_state.validators.iter_mut().for_each(|v| {
+        if v.protection > 0 {
+            v.protection -= 1;
+        }
+    });
 
     let timestamp = Clock::get()?.unix_timestamp;
 

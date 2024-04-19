@@ -6,8 +6,6 @@ pub struct ValidatorState {
     pub id: u8,
     pub owner: Pubkey,
     pub stake: u64,
-    pub bonds: u64,
-    pub is_active: bool,
 }
 
 impl ValidatorState {

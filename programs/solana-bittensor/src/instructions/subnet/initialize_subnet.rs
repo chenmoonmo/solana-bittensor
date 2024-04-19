@@ -1,3 +1,4 @@
+use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
 
@@ -9,8 +10,13 @@ use anchor_spl::{
 pub const SUBNET_REGISTER_FEE: u64 = 10 * 1_000_000_000;
 
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
-    // TODO: 验证注册费用 子网周期初始化
-    // let timestamp = Clock::get()?.unix_timestamp;
+    let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
+    let tao_balance = ctx.accounts.user_tao_ata.amount;
+
+    require!(
+        tao_balance >= SUBNET_REGISTER_FEE,
+        ErrorCode::NotEnoughBalance
+    );
 
     token::burn(
         CpiContext::new(
@@ -24,19 +30,53 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
         SUBNET_REGISTER_FEE,
     )?;
 
-    let owner = *ctx.accounts.owner.key;
+    let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
 
-    let subnet_id = ctx
-        .accounts
-        .bittensor_state
-        .load_mut()?
-        .create_subnet(owner);
+    let owner = ctx.accounts.owner.key();
 
-    ctx.accounts
-        .subnet_state
-        .load_init()?
-        .initialize(subnet_id, owner);
-    ctx.accounts.subnet_epoch.load_init()?;
+    let last_subnet_id = bittensor_state.last_subnet_id;
+
+    if last_subnet_id < i8::try_from(SUBNET_MAX_NUMBER - 1).unwrap() {
+        let subnet_id = bittensor_state.create_subnet(owner, ctx.accounts.subnet_state.key());
+
+        subnet_state.initialize(subnet_id);
+        ctx.accounts.subnet_epoch.load_mut()?.epoch_start_timestamp = Clock::get()?.unix_timestamp;
+    } else {
+        // 找到不在保护期内的上个周期内得分最低的子网
+        match bittensor_state
+            .subnets
+            .iter_mut()
+            .filter(|s| s.protection == 0)
+            .min_by_key(|s| s.last_weight)
+        {
+            Some(min_subnet) => {
+                let subnet_id = min_subnet.id;
+
+                min_subnet.owner = owner;
+                min_subnet.distribute_reward = 0;
+                min_subnet.stake = 0;
+                min_subnet.last_weight = 0;
+                min_subnet.subnet_state = ctx.accounts.subnet_state.key();
+                min_subnet.protection = 1;
+
+                subnet_state.initialize(subnet_id);
+
+                ctx.accounts
+                    .subnet_epoch
+                    .load_mut()?
+                    .reset(Clock::get()?.unix_timestamp);
+
+                // 清除子网的得分
+                ctx.accounts
+                    .bittensor_epoch
+                    .load_mut()?
+                    .remove_subnet_weights(subnet_id);
+            }
+            None => {
+                require!(false, ErrorCode::NoSubnetCanReplace)
+            }
+        }
+    }
     Ok(())
 }
 
@@ -50,18 +90,21 @@ pub struct InitializeSubnet<'info> {
     pub bittensor_state: AccountLoader<'info, BittensorState>,
 
     #[account(
-        init,
-        payer = owner,
-        space = 10 * 1024,
+        mut,
+        seeds = [b"bittensor_epoch", bittensor_state.key().as_ref()],
+        bump,
+    )]
+    pub bittensor_epoch: AccountLoader<'info, BittensorEpochState>,
+
+    #[account(
+        mut,
         seeds = [b"subnet_state",owner.key().as_ref()],
         bump
     )]
     pub subnet_state: AccountLoader<'info, SubnetState>,
 
     #[account(
-        init,
-        payer = owner,
-        space = 10 * 1024,
+        mut,
         seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
         bump
     )]
@@ -77,7 +120,7 @@ pub struct InitializeSubnet<'info> {
 
     // 质押代币存储账户
     #[account(
-        init,
+        init_if_needed,
         payer = owner,
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,

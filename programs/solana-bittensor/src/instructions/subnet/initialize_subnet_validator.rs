@@ -1,18 +1,24 @@
+use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
-
 use anchor_spl::{
     token,
-    token::{Burn, Mint, Token, TokenAccount},
+    token::{Burn, Mint, Token, TokenAccount, Transfer},
 };
 
 pub const VALIDATOR_REGISTER_FEE: u64 = 1 * 1_000_000_000;
 
-pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> Result<()> {
-    // TODO:
-    // 验证人保护期初始化
+pub fn initialize_subnet_validator(
+    ctx: Context<InitializeSubnetValidator>,
+    stake_amount: u64,
+) -> Result<()> {
+    let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
+    let tao_balance = ctx.accounts.user_tao_ata.amount;
 
-    // TODO: 注册费用不足验证
+    require!(
+        tao_balance >= VALIDATOR_REGISTER_FEE + stake_amount,
+        ErrorCode::NotEnoughBalance
+    );
 
     let bump = ctx.bumps.bittensor_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
@@ -31,17 +37,76 @@ pub fn initialize_subnet_validator(ctx: Context<InitializeSubnetValidator>) -> R
         VALIDATOR_REGISTER_FEE,
     )?;
 
-    let owner = ctx.accounts.owner.key();
+    // 如果是淘汰验证人，需要验证质押数量是否大于前64个验证人中最小的质押数量
+    let min_stake_amount = subnet_state.get_min_stake();
 
-    let validator_id = ctx
-        .accounts
-        .subnet_state
-        .load_mut()?
-        .create_validator(owner);
+    require!(
+        stake_amount >= min_stake_amount,
+        ErrorCode::StakeAmountTooLow
+    );
 
-    let validator_state = &mut ctx.accounts.validator_state;
-    validator_state.id = validator_id;
-    validator_state.owner = owner;
+    if stake_amount > 0 {
+        token::transfer(
+            CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                Transfer {
+                    from: ctx.accounts.user_tao_ata.to_account_info(),
+                    to: ctx.accounts.tao_stake.to_account_info(),
+                    authority: ctx.accounts.owner.to_account_info(),
+                },
+            ),
+            stake_amount,
+        )?;
+    }
+
+    // 验证人没满
+    if subnet_state.last_validator_id < i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
+        let owner = ctx.accounts.owner.key();
+
+        let validator_id =
+            subnet_state.create_validator(owner, stake_amount, ctx.accounts.validator_state.key());
+
+        let validator_state = &mut ctx.accounts.validator_state;
+        validator_state.id = validator_id;
+        validator_state.owner = owner;
+        validator_state.stake = stake_amount;
+    } else {
+        // 如果验证人已经满了
+        // 淘汰 前一个周期 bounds 最低且不在保护期的验证人
+
+        //TODO: 获取验证人质押排序前10中的最小质押
+
+        match subnet_state
+            .validators
+            .iter_mut()
+            .filter(|v| v.protection == 0)
+            .min_by_key(|v| v.bounds)
+        {
+            Some(min_validator) => {
+                // 修改该验证人的状态
+                // 将 subnet 的验证人替换为新的验证人
+                ctx.accounts.validator_state.id = min_validator.id;
+                ctx.accounts.validator_state.owner = ctx.accounts.owner.key();
+                ctx.accounts.validator_state.stake += stake_amount;
+
+                min_validator.bounds = 0;
+                min_validator.stake = ctx.accounts.validator_state.stake;
+                min_validator.reward = 0;
+                min_validator.protection = 1;
+                min_validator.owner = ctx.accounts.owner.key();
+                min_validator.pda = ctx.accounts.validator_state.key();
+
+                // 将验证人的打分清零
+                ctx.accounts
+                    .subnet_epoch
+                    .load_mut()?
+                    .remove_weights(min_validator.id);
+            }
+            None => {
+                require!(false, ErrorCode::NoValidatorCanReplace)
+            }
+        }
+    }
 
     Ok(())
 }
@@ -59,7 +124,14 @@ pub struct InitializeSubnetValidator<'info> {
     pub subnet_state: AccountLoader<'info, SubnetState>,
 
     #[account(
-        init,
+        mut,
+        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
+
+    #[account(
+        init_if_needed,
         space = 1024 * 10,
         payer = owner,
         seeds = [b"validator_state",subnet_state.key().as_ref(),owner.key().as_ref()],
@@ -74,6 +146,16 @@ pub struct InitializeSubnetValidator<'info> {
         bump,
     )]
     pub tao_mint: Box<Account<'info, Mint>>,
+
+    // 质押代币存储账户
+    #[account(
+        mut,
+        seeds=[b"tao_stake", subnet_state.key().as_ref()],
+        bump,
+        token::mint = tao_mint,
+        token::authority = bittensor_state
+    )]
+    pub tao_stake: Box<Account<'info, TokenAccount>>,
 
     // 验证者的 tao token account
     #[account(mut)]
