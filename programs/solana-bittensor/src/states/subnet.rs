@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 pub const MAX_VALIDATOR_NUMBER: usize = 32;
 pub const MAX_MINER_NUMBER: usize = 32;
 pub const SUBNET_EPOCH_DURATION: i64 = 60 * 60 * 24;
-
+// 保护期
 pub const MINER_PROTECTION: u64 = 1;
 pub const VALIDATOR_PROTECTION: u64 = 1;
 
@@ -16,8 +16,6 @@ pub struct SubnetState {
     pub stake: u64,
     pub last_validator_id: i8,
     pub last_miner_id: i8,
-    pub miner_total_stake: u64,
-    pub validator_total_stake: u64,
     pub distribute_reward: u64,
     pub validators: [ValidatorInfo; MAX_VALIDATOR_NUMBER],
     pub miners: [MinerInfo; MAX_MINER_NUMBER],
@@ -32,8 +30,6 @@ impl Default for SubnetState {
             stake: 0,
             last_validator_id: -1,
             last_miner_id: -1,
-            miner_total_stake: 0,
-            validator_total_stake: 0,
             distribute_reward: 0,
             validators: [ValidatorInfo::default(); MAX_VALIDATOR_NUMBER],
             miners: [MinerInfo::default(); MAX_MINER_NUMBER],
@@ -71,26 +67,31 @@ impl SubnetState {
 
     pub fn miner_add_stake(&mut self, miner_id: u8, amount: u64) -> () {
         self.miners[miner_id as usize].stake += amount;
-        self.miner_total_stake += amount;
     }
 
     pub fn miner_remove_stake(&mut self, miner_id: u8, amount: u64) -> () {
         self.miners[miner_id as usize].stake -= amount;
-        self.miner_total_stake -= amount;
     }
 
     pub fn validator_add_stake(&mut self, validator_id: u8, amount: u64) -> () {
         self.validators[validator_id as usize].stake += amount;
-        self.validator_total_stake += amount;
     }
 
     pub fn validator_remove_stake(&mut self, validator_id: u8, amount: u64) -> () {
         self.validators[validator_id as usize].stake -= amount;
-        self.validator_total_stake -= amount;
     }
 
     pub fn get_validator_bounds(&self, validator_id: u8) -> u64 {
         self.validators[validator_id as usize].bounds
+    }
+
+    pub fn get_min_stake(&self) -> u64 {
+        if self.last_validator_id >= i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
+            let mut stakes = self.validators.map(|v| v.stake);
+            stakes.sort_unstable();
+            return stakes[10];
+        }
+        return 0;
     }
 }
 

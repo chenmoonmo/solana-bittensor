@@ -1110,8 +1110,9 @@ describe("solana-bittensor", () => {
     // );
 
     await Promise.all(
-      validators.map((validator) =>
-        program.methods
+      validators.map(async (validator) => {
+        await sleep(3000);
+        return program.methods
           .validatorUnstakes(new anchor.BN(1 * 10 ** 9))
           .accounts({
             bittensorState: bittensorPDA,
@@ -1128,8 +1129,8 @@ describe("solana-bittensor", () => {
           .rpc()
           .catch((err) => {
             console.log("Error: ", err);
-          })
-      )
+          });
+      })
     );
   });
 });

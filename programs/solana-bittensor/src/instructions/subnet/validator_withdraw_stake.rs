@@ -28,6 +28,8 @@ pub fn validator_withdraw_stake(ctx: Context<ValidatoWithdrawStake>, amount: u64
         amount,
     )?;
 
+    msg!("stake {}", ctx.accounts.validator_state.stake);
+
     ctx.accounts.validator_state.remove_stake(amount);
     ctx.accounts
         .subnet_state

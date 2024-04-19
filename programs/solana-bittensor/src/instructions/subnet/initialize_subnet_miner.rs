@@ -76,8 +76,6 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
                 require!(false, ErrorCode::NoMinerCanReplace)
             }
         }
-
-        // TODO: 没领取的奖励怎么办
     }
 
     Ok(())

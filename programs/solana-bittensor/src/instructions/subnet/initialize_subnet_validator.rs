@@ -12,6 +12,7 @@ pub fn initialize_subnet_validator(
     ctx: Context<InitializeSubnetValidator>,
     stake_amount: u64,
 ) -> Result<()> {
+    let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
     let tao_balance = ctx.accounts.user_tao_ata.amount;
 
     require!(
@@ -36,8 +37,13 @@ pub fn initialize_subnet_validator(
         VALIDATOR_REGISTER_FEE,
     )?;
 
-    // TODO: 从用户账户转移代币到系统账户
     // 如果是淘汰验证人，需要验证质押数量是否大于前64个验证人中最小的质押数量
+    let min_stake_amount = subnet_state.get_min_stake();
+
+    require!(
+        stake_amount >= min_stake_amount,
+        ErrorCode::StakeAmountTooLow
+    );
 
     if stake_amount > 0 {
         token::transfer(
@@ -52,8 +58,6 @@ pub fn initialize_subnet_validator(
             stake_amount,
         )?;
     }
-
-    let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
 
     // 验证人没满
     if subnet_state.last_validator_id < i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
@@ -70,6 +74,8 @@ pub fn initialize_subnet_validator(
         // 如果验证人已经满了
         // 淘汰 前一个周期 bounds 最低且不在保护期的验证人
 
+        //TODO: 获取验证人质押排序前10中的最小质押
+
         match subnet_state
             .validators
             .iter_mut()
@@ -81,9 +87,10 @@ pub fn initialize_subnet_validator(
                 // 将 subnet 的验证人替换为新的验证人
                 ctx.accounts.validator_state.id = min_validator.id;
                 ctx.accounts.validator_state.owner = ctx.accounts.owner.key();
+                ctx.accounts.validator_state.stake += stake_amount;
 
                 min_validator.bounds = 0;
-                min_validator.stake = 0;
+                min_validator.stake = ctx.accounts.validator_state.stake;
                 min_validator.reward = 0;
                 min_validator.protection = 1;
                 min_validator.owner = ctx.accounts.owner.key();

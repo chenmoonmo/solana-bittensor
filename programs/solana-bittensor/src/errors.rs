@@ -22,5 +22,6 @@ pub enum ErrorCode {
     NoValidatorCanReplace,
     #[msg("No subnet can replace.")]
     NoSubnetCanReplace,
-
+    #[msg("Stake amount too low.")]
+    StakeAmountTooLow,
 }
