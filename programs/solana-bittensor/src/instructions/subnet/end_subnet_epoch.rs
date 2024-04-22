@@ -7,16 +7,35 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
     let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
     let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
     let subnet_epoch = &mut ctx.accounts.subnet_epoch.load_mut()?;
-    require!(
-        subnet_epoch.is_calculated,
-        ErrorCode::SubnetEpochNotCalculated
-    );
+    // require!(
+    //     subnet_epoch.is_calculated,
+    //     ErrorCode::SubnetEpochNotCalculated
+    // );
 
     let mut miner_weights = Box::new([0; MAX_MINER_NUMBER]);
     let mut validator_bounds = Box::new([0; MAX_VALIDATOR_NUMBER]);
 
     let mut total_bounds = 0u64;
     let mut total_weights = 0u64;
+
+    let mut medians = Box::new([0; MAX_MINER_NUMBER]);
+    for i in 0..MAX_MINER_NUMBER {
+        let mut weights = Vec::new();
+        for j in 0..MAX_VALIDATOR_NUMBER {
+            weights.push(subnet_epoch.miners_weights[j][i]);
+        }
+
+        weights.sort();
+        medians[i] = weights[weights.len() / 2];
+    }
+
+    for i in 0..MAX_VALIDATOR_NUMBER {
+        for j in 0..MAX_MINER_NUMBER {
+            if subnet_epoch.miners_weights[i][j] > medians[j] {
+                subnet_epoch.miners_weights[i][j] = medians[j];
+            }
+        }
+    }
 
     for i in 0..MAX_VALIDATOR_NUMBER {
         let validator_weight = subnet_epoch.miners_weights[i];
