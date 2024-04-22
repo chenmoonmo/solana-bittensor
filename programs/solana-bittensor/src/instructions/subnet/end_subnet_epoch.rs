@@ -1,3 +1,4 @@
+use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
 
@@ -6,6 +7,10 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
     let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
     let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
     let subnet_epoch = &mut ctx.accounts.subnet_epoch.load_mut()?;
+    require!(
+        subnet_epoch.is_calculated,
+        ErrorCode::SubnetEpochNotCalculated
+    );
 
     let mut miner_weights = Box::new([0; MAX_MINER_NUMBER]);
     let mut validator_bounds = Box::new([0; MAX_VALIDATOR_NUMBER]);
@@ -94,7 +99,12 @@ pub struct EndSubnetEpoch<'info> {
         bump,
     )]
     pub bittensor_state: AccountLoader<'info, BittensorState>,
-    #[account(mut)]
+
+    #[account(
+        mut,
+        seeds = [b"subnet_state",owner.key().as_ref()],
+        bump
+    )]
     pub subnet_state: AccountLoader<'info, SubnetState>,
 
     #[account(
@@ -103,6 +113,9 @@ pub struct EndSubnetEpoch<'info> {
         bump
     )]
     pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
+
+    #[account(mut)]
+    pub owner: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }
