@@ -629,41 +629,6 @@ describe("solana-bittensor", () => {
   });
 
   it("subnet end epoch", async () => {
-    let weightsState1 = await program.account.subnetEpochState.all();
-    console.log(
-      "weights state: ",
-      weightsState1.map((item) => {
-        return item.account.minersWeights.map((item) => item.toString());
-      })
-    );
-
-    await Promise.all(
-      subnets.map(async (subnet) => {
-        return program.methods
-          .calculateWeights()
-          .accounts({
-            bittensorState: bittensorPDA,
-            subnetState: subnet.subnetPDA,
-            subnetEpoch: subnet.subnetWeightsPDA,
-            systemProgram: anchor.web3.SystemProgram.programId,
-            owner: subnet.user.keypair.publicKey,
-          })
-          .signers([subnet.user.keypair])
-          .rpc()
-          .catch((err) => {
-            console.log("Error: ", err);
-          });
-      })
-    );
-
-    weightsState1 = await program.account.subnetEpochState.all();
-    console.log(
-      "weights state2: ",
-      weightsState1.map((item) => {
-        return item.account.minersWeights.map((item) => item.toString());
-      })
-    );
-
     await Promise.all(
       subnets.map(async (subnet) => {
         return (
@@ -689,23 +654,23 @@ describe("solana-bittensor", () => {
     const subnetsState = await program.account.subnetState.all();
     const weightsState = await program.account.subnetEpochState.all();
 
-    // console.log(
-    //   "miners state: ",
-    //   subnetsState.map((item) => {
-    //     return item.account.miners.map((item) =>
-    //       [item.reward.toString(), item.protection.toString()].toString()
-    //     );
-    //   })
-    // );
+    console.log(
+      "miners state: ",
+      subnetsState.map((item) => {
+        return item.account.miners.map((item) =>
+          [item.reward.toString(), item.protection.toString()].toString()
+        );
+      })
+    );
 
-    // console.log(
-    //   "validators state: ",
-    //   subnetsState.map((item) => {
-    //     return item.account.validators.map((item) =>
-    //       [item.reward.toString(), item.protection.toString()].toString()
-    //     );
-    //   })
-    // );
+    console.log(
+      "validators state: ",
+      subnetsState.map((item) => {
+        return item.account.validators.map((item) =>
+          [item.reward.toString(), item.protection.toString()].toString()
+        );
+      })
+    );
 
     console.log(
       "weights state3: ",
