@@ -7,6 +7,7 @@ pub const MAX_WEIGHT: u64 = 1000;
 #[repr(packed)]
 #[derive(Debug)]
 pub struct SubnetEpochState {
+    pub is_calculated: bool,
     pub epoch_number: u64,
     pub epoch_start_timestamp: i64,
     pub miners_weights: [[u64; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER],
@@ -16,6 +17,7 @@ impl Default for SubnetEpochState {
     #[inline]
     fn default() -> Self {
         SubnetEpochState {
+            is_calculated: false,
             epoch_number: 0,
             epoch_start_timestamp: 0,
             miners_weights: [[0; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER],
@@ -31,6 +33,7 @@ impl SubnetEpochState {
     }
 
     pub fn end_epoch(&mut self, epoch_start_timestamp: i64) -> () {
+        self.is_calculated = false;
         self.epoch_start_timestamp = epoch_start_timestamp;
         self.miners_weights = [[0; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER];
         self.epoch_number += 1;

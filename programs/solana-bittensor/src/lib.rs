@@ -68,6 +68,9 @@ pub mod solana_bittensor {
     pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
         instructions::end_epoch(ctx)
     }
+    pub fn calculate_weights(ctx: Context<CalculateWeights>) -> Result<()> {
+        instructions::calculate_weights(ctx)
+    }
     // 6. 结束子网周期
     pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
         instructions::end_subnet_epoch(ctx)
