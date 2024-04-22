@@ -24,8 +24,4 @@ pub enum ErrorCode {
     NoSubnetCanReplace,
     #[msg("Stake amount too low.")]
     StakeAmountTooLow,
-    #[msg("Subnet epoch not calculated.")]
-    SubnetEpochNotCalculated,
-    #[msg("Subnet epoch already calculated.")]
-    SubnetEpochAlreadyCalculated,
 }
