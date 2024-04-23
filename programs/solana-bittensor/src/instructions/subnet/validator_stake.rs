@@ -24,7 +24,7 @@ pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> 
     ctx.accounts.validator_state.add_stake(amount);
 
     ctx.accounts
-        .subnet_state
+        .subnet_validators
         .load_mut()?
         .validator_add_stake(validator_id, amount);
 
@@ -42,9 +42,14 @@ pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()
     validator.remove_stake(amount);
 
     ctx.accounts
-        .subnet_state
+        .subnet_validators
         .load_mut()?
         .validator_remove_stake(validator.id, amount);
+
+    ctx.accounts
+        .bittensor_state
+        .load_mut()?
+        .validator_remove_stake(ctx.accounts.validator_state.key(), amount);
 
     let bump = ctx.bumps.bittensor_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
@@ -73,8 +78,16 @@ pub struct ValidatorStake<'info> {
         bump,
     )]
     pub bittensor_state: AccountLoader<'info, BittensorState>,
+
     #[account(mut)]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
+    
+    #[account(
+        mut,
+        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_validators: AccountLoader<'info, SubnetValidators>,
 
     #[account(
         mut,

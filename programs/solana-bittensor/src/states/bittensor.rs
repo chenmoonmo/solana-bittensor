@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-pub const SUBNET_MAX_NUMBER: usize = 3;
+pub const MAX_SUBNET_NUMBER: usize = 32;
 pub const BITTENSOR_VALIDATOR_MAX_NUMBER: usize = 32;
 pub const MAX_EPOCH_NUMBER: usize = 10;
 pub const EPOCH_DURATION: i64 = 60 * 60 * 1;
@@ -13,7 +13,7 @@ pub struct BittensorState {
     pub total_stake: u64,
     pub last_validator_id: i8,
     pub last_subnet_id: i8,
-    pub subnets: [SubnetInfo; SUBNET_MAX_NUMBER],
+    pub subnets: [SubnetInfo; MAX_SUBNET_NUMBER],
     pub validators: [BittensorValidatorInfo; BITTENSOR_VALIDATOR_MAX_NUMBER],
 }
 
@@ -23,7 +23,7 @@ impl BittensorState {
         self.total_stake = 0;
         self.last_validator_id = -1;
         self.last_subnet_id = -1;
-        self.subnets = [SubnetInfo::default(); SUBNET_MAX_NUMBER];
+        self.subnets = [SubnetInfo::default(); MAX_SUBNET_NUMBER];
         self.validators = [BittensorValidatorInfo::default(); BITTENSOR_VALIDATOR_MAX_NUMBER];
     }
 
@@ -74,6 +74,16 @@ impl BittensorState {
             .find(|v| v.validator_state == validator_state)
         {
             validator.stake += amount;
+        }
+    }
+
+    pub fn validator_remove_stake(&mut self, validator_state: Pubkey, amount: u64) -> () {
+        if let Some(validator) = self
+            .validators
+            .iter_mut()
+            .find(|v| v.validator_state == validator_state)
+        {
+            validator.stake -= amount;
         }
     }
 

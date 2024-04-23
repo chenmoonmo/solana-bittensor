@@ -9,7 +9,7 @@ pub fn set_subnet_weights(ctx: Context<SetSubnetWeights>, weights: Vec<u64>) -> 
     let sum_weights = weights.iter().sum::<u64>();
     // weights sum should not exceed MAX_WEIGHT
     require!(
-        sum_weights <= MAX_WEIGHT,
+        sum_weights <= MAX_WEIGHT as u64,
         ErrorCode::TotalWeightExceedsMaxWeight
     );
 
@@ -44,7 +44,7 @@ pub struct SetSubnetWeights<'info> {
     pub bittensor_epoch: AccountLoader<'info, BittensorEpochState>,
 
     #[account(mut)]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
         mut,

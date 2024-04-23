@@ -4,14 +4,16 @@ use anchor_lang::prelude::*;
 pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
     let timestamp = Clock::get()?.unix_timestamp;
     let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
-    let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
+    let subnet_state = &mut ctx.accounts.subnet_state;
+    let subnet_validators = &mut ctx.accounts.subnet_validators.load_mut()?;
+    let subnet_miners = &mut ctx.accounts.subnet_miners.load_mut()?;
     let subnet_epoch = &mut ctx.accounts.subnet_epoch.load_mut()?;
 
     let mut miner_weights = Box::new([0; MAX_MINER_NUMBER]);
     let mut validator_bounds = Box::new([0; MAX_VALIDATOR_NUMBER]);
 
-    let mut total_bounds = 0u64;
-    let mut total_weights = 0u64;
+    let mut total_bounds = 0u16;
+    let mut total_weights = 0u16;
 
     let mut medians = Box::new([0; MAX_MINER_NUMBER]);
     for i in 0..MAX_MINER_NUMBER {
@@ -34,18 +36,19 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
 
     for i in 0..MAX_VALIDATOR_NUMBER {
         let validator_weight = subnet_epoch.miners_weights[i];
-        let total_stake = subnet_state.validators[i].stake;
+        let total_stake = subnet_validators.validators[i].stake;
 
         let mut total_weight = 0;
 
         for j in 0..MAX_MINER_NUMBER {
             total_weight += validator_weight[j];
-            miner_weights[j] += validator_weight[j] * total_stake;
-            total_weights += validator_weight[j] * total_stake;
+            // TODO:
+            miner_weights[j] += validator_weight[j] * total_stake as u16;
+            total_weights += validator_weight[j] * total_stake as u16;
         }
 
-        let bond = total_stake * total_weight / MAX_WEIGHT;
-        total_bounds += bond;
+        let bond = total_stake * total_weight as u64 / MAX_WEIGHT as u64;
+        total_bounds += bond as u16;
         validator_bounds[i] = bond;
     }
 
@@ -57,10 +60,10 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
             .unwrap()
             .checked_div(total_weights as u128)
             .unwrap() as u64;
-        subnet_state.miners[i].reward += reward;
+        subnet_miners.miners[i].reward += reward;
 
-        if subnet_state.miners[i].protection > 0 {
-            subnet_state.miners[i].protection -= 1;
+        if subnet_miners.miners[i].protection > 0 {
+            subnet_miners.miners[i].protection -= 1;
         }
     }
 
@@ -71,18 +74,20 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
             .checked_div(total_bounds as u128)
             .unwrap() as u64;
 
-        subnet_state.validators[i].bounds = validator_bounds[i];
-        subnet_state.validators[i].reward += reward;
+        subnet_validators.validators[i].bounds = validator_bounds[i];
+        subnet_validators.validators[i].reward += reward;
 
         // 更新主网验证人的工作量
-        if let Some(v) = bittensor_state.validators.iter_mut().find(|v| {
-            v.validator_id == subnet_state.validators[i].id && v.subnet_id == subnet_state.id
-        }) {
+        if let Some(v) = bittensor_state
+            .validators
+            .iter_mut()
+            .find(|v| v.validator_state == subnet_validators.validators[i].pubkey)
+        {
             v.bounds = validator_bounds[i];
         }
 
-        if subnet_state.validators[i].protection > 0 {
-            subnet_state.validators[i].protection -= 1;
+        if subnet_validators.validators[i].protection > 0 {
+            subnet_validators.validators[i].protection -= 1;
         }
     }
 
@@ -119,7 +124,21 @@ pub struct EndSubnetEpoch<'info> {
         seeds = [b"subnet_state",owner.key().as_ref()],
         bump
     )]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_validators",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_validators: AccountLoader<'info, SubnetValidators>,
 
     #[account(
         mut,

@@ -12,7 +12,10 @@ pub fn initialize_subnet_validator(
     ctx: Context<InitializeSubnetValidator>,
     stake_amount: u64,
 ) -> Result<()> {
-    let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
+    let subnet_validators = &mut ctx.accounts.subnet_validators.load_mut()?;
+    let owner = ctx.accounts.owner.key();
+    let pubkey = ctx.accounts.validator_state.key();
+
     let tao_balance = ctx.accounts.user_tao_ata.amount;
 
     require!(
@@ -38,7 +41,7 @@ pub fn initialize_subnet_validator(
     )?;
 
     // 如果是淘汰验证人，需要验证质押数量是否大于前64个验证人中最小的质押数量
-    let min_stake_amount = subnet_state.get_min_stake();
+    let min_stake_amount = subnet_validators.get_min_stake();
 
     require!(
         stake_amount >= min_stake_amount,
@@ -60,11 +63,10 @@ pub fn initialize_subnet_validator(
     }
 
     // 验证人没满
-    if subnet_state.last_validator_id < i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
+    if subnet_validators.last_validator_id < i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
         let owner = ctx.accounts.owner.key();
 
-        let validator_id =
-            subnet_state.create_validator(owner, stake_amount, ctx.accounts.validator_state.key());
+        let validator_id = subnet_validators.create_validator(owner, pubkey, stake_amount);
 
         let validator_state = &mut ctx.accounts.validator_state;
         validator_state.id = validator_id;
@@ -76,7 +78,7 @@ pub fn initialize_subnet_validator(
 
         //TODO: 获取验证人质押排序前10中的最小质押
 
-        match subnet_state
+        match subnet_validators
             .validators
             .iter_mut()
             .filter(|v| v.protection == 0)
@@ -86,15 +88,15 @@ pub fn initialize_subnet_validator(
                 // 修改该验证人的状态
                 // 将 subnet 的验证人替换为新的验证人
                 ctx.accounts.validator_state.id = min_validator.id;
-                ctx.accounts.validator_state.owner = ctx.accounts.owner.key();
+                ctx.accounts.validator_state.owner = owner;
                 ctx.accounts.validator_state.stake += stake_amount;
 
                 min_validator.bounds = 0;
                 min_validator.stake = ctx.accounts.validator_state.stake;
                 min_validator.reward = 0;
                 min_validator.protection = 1;
-                min_validator.owner = ctx.accounts.owner.key();
-                min_validator.pda = ctx.accounts.validator_state.key();
+                min_validator.owner = owner;
+                min_validator.pubkey = pubkey;
 
                 // 将验证人的打分清零
                 ctx.accounts
@@ -121,7 +123,7 @@ pub struct InitializeSubnetValidator<'info> {
     pub bittensor_state: AccountLoader<'info, BittensorState>,
 
     #[account(mut)]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
         mut,
@@ -138,6 +140,13 @@ pub struct InitializeSubnetValidator<'info> {
         bump
     )]
     pub validator_state: Account<'info, ValidatorState>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_validators",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_validators: AccountLoader<'info, SubnetValidators>,
 
     // 系统奖励代币
     #[account(

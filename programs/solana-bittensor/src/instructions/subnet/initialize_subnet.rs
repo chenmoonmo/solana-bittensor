@@ -30,17 +30,19 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
         SUBNET_REGISTER_FEE,
     )?;
 
-    let subnet_state = &mut ctx.accounts.subnet_state.load_mut()?;
-
     let owner = ctx.accounts.owner.key();
+    let pubkey = ctx.accounts.subnet_state.key();
+    let subnet_state = &mut ctx.accounts.subnet_state;
 
     let last_subnet_id = bittensor_state.last_subnet_id;
 
-    if last_subnet_id < i8::try_from(SUBNET_MAX_NUMBER - 1).unwrap() {
-        let subnet_id = bittensor_state.create_subnet(owner, ctx.accounts.subnet_state.key());
+    if last_subnet_id < i8::try_from(MAX_SUBNET_NUMBER - 1).unwrap() {
+        let subnet_id = bittensor_state.create_subnet(owner, pubkey);
 
         subnet_state.initialize(subnet_id);
         ctx.accounts.subnet_epoch.load_mut()?.epoch_start_timestamp = Clock::get()?.unix_timestamp;
+        ctx.accounts.subnet_miners.load_mut()?.id = subnet_id;
+        ctx.accounts.subnet_validators.load_mut()?.id = subnet_id;
     } else {
         // 找到不在保护期内的上个周期内得分最低的子网
         match bittensor_state
@@ -56,10 +58,13 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
                 min_subnet.distribute_reward = 0;
                 min_subnet.stake = 0;
                 min_subnet.last_weight = 0;
-                min_subnet.subnet_state = ctx.accounts.subnet_state.key();
+                min_subnet.subnet_state = pubkey;
                 min_subnet.protection = 1;
 
                 subnet_state.initialize(subnet_id);
+
+                ctx.accounts.subnet_miners.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_validators.load_mut()?.id = subnet_id;
 
                 ctx.accounts
                     .subnet_epoch
@@ -101,7 +106,7 @@ pub struct InitializeSubnet<'info> {
         seeds = [b"subnet_state",owner.key().as_ref()],
         bump
     )]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
         mut,
@@ -109,6 +114,20 @@ pub struct InitializeSubnet<'info> {
         bump
     )]
     pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_validators",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_validators: AccountLoader<'info, SubnetValidators>,
 
     // 系统奖励代币
     #[account(

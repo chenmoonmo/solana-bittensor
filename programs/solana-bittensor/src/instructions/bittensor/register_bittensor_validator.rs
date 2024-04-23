@@ -5,11 +5,12 @@ use anchor_lang::prelude::*;
 pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) -> Result<()> {
     let bittensor_state = &mut ctx.accounts.bittensor_state.load_mut()?;
     let validator_state = &mut ctx.accounts.validator_state;
-    let subnet_state = &mut ctx.accounts.subnet_state.load()?;
+    let subnet_state = &mut ctx.accounts.subnet_state;
+    let subnet_validators = &mut ctx.accounts.subnet_validators.load_mut()?;
     let validator_id = validator_state.id;
     let stake = validator_state.stake;
     let owner = validator_state.owner;
-    let bounds = subnet_state.get_validator_bounds(validator_id);
+    let bounds = subnet_validators.get_validator_bounds(validator_id);
     let subnet_id = subnet_state.id;
 
     // 已经主网验证人
@@ -44,7 +45,7 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
             bounds > min_validator.bounds,
             ErrorCode::ValidatorNotEnoughBounds
         );
-        
+
         // 替换验证人
         min_validator.stake = stake;
         min_validator.owner = owner;
@@ -55,7 +56,10 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
         min_validator.validator_state = validator_state.key();
 
         // 将验证人的打分清零
-        ctx.accounts.bittensor_epoch.load_mut()?.remove_weights(min_validator.id);
+        ctx.accounts
+            .bittensor_epoch
+            .load_mut()?
+            .remove_weights(min_validator.id);
     }
     Ok(())
 }
@@ -77,7 +81,14 @@ pub struct RegisterBittensorValidator<'info> {
     pub bittensor_epoch: AccountLoader<'info, BittensorEpochState>,
 
     #[account(mut)]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_validators",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_validators: AccountLoader<'info, SubnetValidators>,
 
     #[account(
         mut,

@@ -10,10 +10,10 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
 
     let bittensor_epoch = &mut ctx.accounts.bittensor_epoch.load_mut()?;
 
-    let mut subnet_weights = Box::new([0u64; SUBNET_MAX_NUMBER]);
+    let mut subnet_weights = Box::new([0u64; MAX_SUBNET_NUMBER]);
 
     for i in 0..MAX_VALIDATOR_NUMBER {
-        for j in 0..SUBNET_MAX_NUMBER {
+        for j in 0..MAX_SUBNET_NUMBER {
             subnet_weights[j as usize] += (bittensor_epoch.weights[i][j] as u128)
                 .checked_mul(bittensor_state.validators[i].stake as u128)
                 .unwrap() as u64;
@@ -22,7 +22,7 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
 
     let total_weight = subnet_weights.iter().sum::<u64>();
 
-    for i in 0..SUBNET_MAX_NUMBER {
+    for i in 0..MAX_SUBNET_NUMBER {
         let reward = (REWARD_PER_EPOCH as u128)
             .checked_mul(subnet_weights[i] as u128)
             .unwrap()

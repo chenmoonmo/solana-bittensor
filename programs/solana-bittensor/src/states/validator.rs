@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 // 考虑 作为主网验证者或子网验证者
 
 #[account]
+#[derive(Default, Debug)]
 pub struct ValidatorState {
     pub id: u8,
     pub owner: Pubkey,

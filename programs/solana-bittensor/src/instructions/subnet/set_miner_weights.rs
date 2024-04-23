@@ -6,20 +6,20 @@ pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u64>) -> Re
     let validator_id = ctx.accounts.validator_state.id;
     let sum_weights = weights.iter().sum::<u64>();
     require!(
-        sum_weights <= MAX_WEIGHT,
+        sum_weights <= MAX_WEIGHT as u64,
         ErrorCode::TotalWeightExceedsMaxWeight
     );
     ctx.accounts
         .subnet_epoch
         .load_mut()?
-        .set_weights(validator_id, weights);
+        .set_weights(validator_id, weights.iter().map(|x| *x as u16).collect());
     Ok(())
 }
 
 #[derive(Accounts)]
 pub struct SetMinerWeights<'info> {
     #[account(mut)]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
         mut,

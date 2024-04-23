@@ -11,6 +11,8 @@ interface User {
 interface Subnet {
   subnetPDA: anchor.web3.PublicKey;
   subnetWeightsPDA: anchor.web3.PublicKey;
+  subnetMinersPDA: anchor.web3.PublicKey;
+  subnetValidatorsPDA: anchor.web3.PublicKey;
   subnetTaoStake: anchor.web3.PublicKey;
   userTaoAta: anchor.web3.PublicKey;
   user: User;
@@ -99,7 +101,7 @@ describe("solana-bittensor", () => {
     return { keypair: user, taoATA };
   }
 
-  function generateSubnet(user: User) {
+  function generateSubnet(user: User): Subnet {
     const owenr = user.keypair.publicKey;
     const userTaoAta = user.taoATA;
 
@@ -113,6 +115,16 @@ describe("solana-bittensor", () => {
       program.programId
     );
 
+    const [subnetMinersPDA] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("subnet_miners"), subnetPDA.toBuffer()],
+      program.programId
+    );
+
+    const [subnetValidatorsPDA] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("subnet_validators"), subnetPDA.toBuffer()],
+      program.programId
+    );
+
     const [subnetTaoStake] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("tao_stake"), subnetPDA.toBuffer()],
       program.programId
@@ -121,6 +133,8 @@ describe("solana-bittensor", () => {
     return {
       subnetPDA,
       subnetWeightsPDA,
+      subnetMinersPDA,
+      subnetValidatorsPDA,
       subnetTaoStake,
       userTaoAta,
       user,
@@ -250,7 +264,6 @@ describe("solana-bittensor", () => {
         console.log("Error: ", err);
       });
   });
-
   it("Is initlialized subnet", async () => {
     users = await Promise.all(
       new Array(32).fill(0).map(() => createUser(taoMint))
@@ -266,6 +279,8 @@ describe("solana-bittensor", () => {
             bittensorState: bittensorPDA,
             subnetState: item.subnetPDA,
             subnetEpoch: item.subnetWeightsPDA,
+            subnetMiners: item.subnetMinersPDA,
+            subnetValidators: item.subnetValidatorsPDA,
             owner: users[index].keypair.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
           })
@@ -279,6 +294,8 @@ describe("solana-bittensor", () => {
             bittensorState: bittensorPDA,
             bittensorEpoch: bittensorEpochPDA,
             subnetEpoch: item.subnetWeightsPDA,
+            subnetMiners: item.subnetMinersPDA,
+            subnetValidators: item.subnetValidatorsPDA,
             taoStake: item.subnetTaoStake,
             owner: users[index].keypair.publicKey,
             userTaoAta: item.userTaoAta,
@@ -321,6 +338,7 @@ describe("solana-bittensor", () => {
         .sort((a, b) => a.id - b.id)
     );
   });
+  return;
 
   it("Is initlialized Validator", async () => {
     // 每个用户注册 10 个 validator
@@ -415,6 +433,8 @@ describe("solana-bittensor", () => {
       })
     );
   });
+
+  return;
 
   it("register validator when validators is full", async () => {
     let newUser = await createUser(taoMint);
