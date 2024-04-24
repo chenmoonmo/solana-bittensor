@@ -24,4 +24,8 @@ pub enum ErrorCode {
     NoSubnetCanReplace,
     #[msg("Stake amount too low.")]
     StakeAmountTooLow,
+    #[msg("Epoch is ended.")]
+    EpochIsEnded,
+    #[msg("Invalid end step.")]
+    InvalidEndStep,
 }

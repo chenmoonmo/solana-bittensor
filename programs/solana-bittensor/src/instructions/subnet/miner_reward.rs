@@ -9,7 +9,7 @@ use anchor_spl::{
 pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
     let miner_id = ctx.accounts.miner_state.id;
 
-    let miners = &mut ctx.accounts.subnet_state.load_mut()?.miners;
+    let miners = &mut ctx.accounts.subnet_miners.load_mut()?.miners;
 
     let miner = miners.iter_mut().find(|x| x.id == miner_id).unwrap();
 
@@ -46,7 +46,15 @@ pub struct MinerReward<'info> {
     pub bittensor_state: AccountLoader<'info, BittensorState>,
 
     #[account(mut)]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
+
     #[account(
         mut,
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],

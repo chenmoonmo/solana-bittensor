@@ -69,6 +69,22 @@ pub mod solana_bittensor {
         instructions::end_epoch(ctx)
     }
     // 6. 结束子网周期
+    pub fn end_subnet_medians1(ctx: Context<EndSubnetMedians>) -> Result<()> {
+        instructions::end_subnet_medians1(ctx)
+    }
+
+    pub fn end_subnet_medians2(ctx: Context<EndSubnetMedians>) -> Result<()> {
+        instructions::end_subnet_medians2(ctx)
+    }
+
+    pub fn end_subnet_epoch1(ctx: Context<EndSubnetEpoch>) -> Result<()> {
+        instructions::end_subnet_epoch1(ctx)
+    }
+
+    pub fn end_subnet_epoch2(ctx: Context<EndSubnetEpoch>) -> Result<()> {
+        instructions::end_subnet_epoch2(ctx)
+    }
+    
     pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
         instructions::end_subnet_epoch(ctx)
     }

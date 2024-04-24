@@ -33,7 +33,7 @@ pub fn miner_withdraw_stake(ctx: Context<MinerWithdrawStake>, amount: u64) -> Re
     ctx.accounts.miner_state.remove_stake(amount);
     // 2. 从总的质押中减去 stake
     ctx.accounts
-        .subnet_state
+        .subnet_miners
         .load_mut()?
         .miner_remove_stake(miner_id, amount);
 
@@ -50,7 +50,15 @@ pub struct MinerWithdrawStake<'info> {
     pub bittensor_state: AccountLoader<'info, BittensorState>,
 
     #[account(mut)]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
+
     #[account(
         mut,
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],

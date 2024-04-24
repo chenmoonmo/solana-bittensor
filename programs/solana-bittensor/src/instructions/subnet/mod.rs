@@ -8,6 +8,7 @@ pub mod validator_stake;
 pub mod validator_withdraw_stake;
 pub mod validator_reward;
 pub mod end_subnet_epoch;
+pub mod end_subnet_medians;
 pub mod set_miner_weights;
 
 pub use initialize_subnet::*;
@@ -18,6 +19,7 @@ pub use miner_withdraw_stake::*;
 pub use miner_reward::*;
 pub use validator_stake::*;
 pub use end_subnet_epoch::*;
+pub use end_subnet_medians::*;
 pub use set_miner_weights::*;
 pub use validator_withdraw_stake::*;
 pub use validator_reward::*;

@@ -32,7 +32,7 @@ pub fn validator_withdraw_stake(ctx: Context<ValidatoWithdrawStake>, amount: u64
 
     ctx.accounts.validator_state.remove_stake(amount);
     ctx.accounts
-        .subnet_state
+        .subnet_validators
         .load_mut()?
         .validator_remove_stake(validator_id, amount);
 
@@ -47,8 +47,17 @@ pub struct ValidatoWithdrawStake<'info> {
         bump,
     )]
     pub bittensor_state: AccountLoader<'info, BittensorState>,
+
     #[account(mut)]
-    pub subnet_state: AccountLoader<'info, SubnetState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_validators: AccountLoader<'info, SubnetValidators>,
+
     #[account(
         seeds = [b"validator_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump
