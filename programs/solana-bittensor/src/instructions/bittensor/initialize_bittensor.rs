@@ -20,7 +20,7 @@ pub struct InitializeBittensor<'info> {
     #[account(
         init,
         payer = owner,
-        space = 10 * 1024,
+        space = 8 + BittensorState::LEN,
         seeds = [b"bittensor"],
         bump
     )]
@@ -29,7 +29,7 @@ pub struct InitializeBittensor<'info> {
     #[account(
         init,
         payer = owner,
-        space = 10 * 1024,
+        space = 8 + BittensorEpochState::LEN,
         seeds = [b"bittensor_epoch", bittensor_state.key().as_ref()],
         bump,
     )]

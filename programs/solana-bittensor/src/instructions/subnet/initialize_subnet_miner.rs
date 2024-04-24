@@ -109,7 +109,7 @@ pub struct InitializeSubnetMiner<'info> {
 
     #[account(
         init_if_needed,
-        space = 10 * 1024,
+        space = 8 + MinerState::LEN,
         payer = owner,
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump

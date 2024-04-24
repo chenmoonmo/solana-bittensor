@@ -76,8 +76,6 @@ pub fn initialize_subnet_validator(
         // 如果验证人已经满了
         // 淘汰 前一个周期 bounds 最低且不在保护期的验证人
 
-        //TODO: 获取验证人质押排序前10中的最小质押
-
         match subnet_validators
             .validators
             .iter_mut()
@@ -134,7 +132,7 @@ pub struct InitializeSubnetValidator<'info> {
 
     #[account(
         init_if_needed,
-        space = 1024 * 10,
+        space = 8 + ValidatorState::LEN,
         payer = owner,
         seeds = [b"validator_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump

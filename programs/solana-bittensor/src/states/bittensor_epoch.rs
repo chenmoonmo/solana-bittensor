@@ -12,6 +12,8 @@ pub struct BittensorEpochState {
 }
 
 impl BittensorEpochState {
+    pub const LEN:usize = 8 + 8 + 8 * MAX_SUBNET_NUMBER * BITTENSOR_VALIDATOR_MAX_NUMBER; // 8 + 8 + 8 * 32 * 32 = 8224
+    
     pub fn set_weights(&mut self, validator_id: u8, weights: Vec<u64>) -> () {
         let mut new_weights = [0u64; MAX_SUBNET_NUMBER];
         for i in 0..weights.len() {

@@ -24,6 +24,7 @@ impl Default for SubnetValidators {
 }
 
 impl SubnetValidators {
+    pub const LEN:usize = 1 + 1 + MAX_VALIDATOR_NUMBER * ValidatorInfo::LEN; // 1 + 1 + 32 * 89 = 2849
     pub fn create_validator(&mut self, owner: Pubkey, pubkey: Pubkey, stake: u64) -> u8 {
         let id = (self.last_validator_id + 1) as u8;
         self.validators[id as usize].id = id;

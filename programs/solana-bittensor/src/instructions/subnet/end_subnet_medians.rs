@@ -40,7 +40,7 @@ pub fn end_subnet_medians2(ctx: Context<EndSubnetMedians>) -> Result<()> {
     for i in 0..MAX_MINER_NUMBER / 2 {
         let mut weights = Vec::new();
         for j in 0..MAX_VALIDATOR_NUMBER {
-            weights.push(subnet_epoch.miners_weights[j][i]);
+            weights.push(subnet_epoch.miners_weights[j][i + MAX_MINER_NUMBER / 2]);
         }
 
         weights.sort();

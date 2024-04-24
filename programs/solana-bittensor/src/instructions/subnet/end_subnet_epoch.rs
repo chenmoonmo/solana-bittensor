@@ -75,6 +75,7 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
             .unwrap()
             .checked_div(total_weights as u128)
             .unwrap_or(0) as u64;
+
         subnet_miners.miners[i].reward += reward;
 
         if subnet_miners.miners[i].protection > 0 {

@@ -32,6 +32,14 @@ impl Default for SubnetEpochState {
 }
 
 impl SubnetEpochState {
+    pub const LEN: usize = 1
+        + 8
+        + 8
+        + 2 * MAX_MINER_NUMBER * MAX_VALIDATOR_NUMBER
+        + 8 * MAX_MINER_NUMBER
+        + 2 * MAX_VALIDATOR_NUMBER
+        + 1; // 1 + 8 + 8 + 2 * 32 * 32 + 8 * 32 + 2 * 32 + 1 = 8224
+
     pub fn reset(&mut self, epoch_start_timestamp: i64) -> () {
         self.epoch_start_timestamp = epoch_start_timestamp;
         self.miners_weights = [[0; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER];

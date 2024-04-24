@@ -10,6 +10,7 @@ pub struct ValidatorState {
 }
 
 impl ValidatorState {
+    pub const LEN: usize = 1 + 32 + 8; // 1 + 32 + 8 = 41
     pub fn add_stake(&mut self, amount: u64) {
         self.stake += amount;
     }
