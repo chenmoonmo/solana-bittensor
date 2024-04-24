@@ -10,6 +10,10 @@ pub struct MinerState {
 }
 
 impl MinerState {
+
+    pub const LEN: usize = 1 + 1 + 32 + 8; // 1 + 1 + 32 + 8 = 42
+
+
     pub fn initialize(&mut self, id: u8, subnet_id: u8, owner: Pubkey) -> () {
         self.id = id;
         self.subnet_id = subnet_id;

@@ -36,7 +36,7 @@ pub struct RegisterSubnet<'info> {
     #[account(
         init,
         payer = owner,
-        space = 10 * 1024,
+        space = 8 + SubnetEpochState::LEN,
         seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
         bump
     )]
@@ -54,7 +54,7 @@ pub struct RegisterSubnet<'info> {
     #[account(
         init,
         payer = owner,
-        space = 10 * 1024,
+        space = 8 + SubnetValidators::LEN,
         seeds = [b"subnet_validators",subnet_state.key().as_ref()],
         bump
     )]

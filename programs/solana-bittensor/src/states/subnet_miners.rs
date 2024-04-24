@@ -24,7 +24,7 @@ impl Default for SubnetMiners {
 }
 
 impl SubnetMiners {
-    pub const LEN: usize = 1 + 1 + MAX_MINER_NUMBER * MinerInfo::LEN;
+    pub const LEN: usize = 1 + 1 + MAX_MINER_NUMBER * MinerInfo::LEN; // 1 + 1 + 32 * 89 = 2849
 
     pub fn create_miner(&mut self, owner: Pubkey, pubkey: Pubkey) -> u8 {
         let id = (self.last_miner_id + 1) as u8;

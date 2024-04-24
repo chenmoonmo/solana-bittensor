@@ -20,7 +20,7 @@ pub struct SubnetState {
 }
 
 impl SubnetState {
-    pub const LEN: usize = 1 + 32 + 32 + 32 + 32 + 8 + 8;
+    pub const LEN: usize = 1 + 32 + 32 + 32 + 32 + 8 + 8; // 1 + 32 + 32 + 32 + 32 + 8 + 8 = 137
     pub fn register(
         &mut self,
         owner: Pubkey,

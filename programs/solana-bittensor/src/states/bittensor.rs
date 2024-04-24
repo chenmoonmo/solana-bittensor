@@ -18,6 +18,13 @@ pub struct BittensorState {
 }
 
 impl BittensorState {
+    pub const LEN: usize = 8
+        + 8
+        + 1
+        + 1
+        + SubnetInfo::LEN * MAX_SUBNET_NUMBER
+        + BittensorValidatorInfo::LEN * BITTENSOR_VALIDATOR_MAX_NUMBER; // 8 + 8 + 1 + 1 + 32 * 89 + 32 * 91 = 8224
+
     pub fn initialize(&mut self, epoch_start_timestamp: i64) -> () {
         self.epoch_start_timestamp = epoch_start_timestamp;
         self.total_stake = 0;
@@ -109,6 +116,10 @@ pub struct SubnetInfo {
     pub protection: u64,
 }
 
+impl SubnetInfo {
+    pub const LEN: usize = 1 + 8 + 8 + 8 + 32 + 32 + 8; // 1 + 8 + 8 + 8 + 32 + 32 + 8  = 89
+}
+
 #[zero_copy(unsafe)]
 #[repr(packed)]
 #[derive(Default, Debug)]
@@ -124,4 +135,8 @@ pub struct BittensorValidatorInfo {
     // 保护期
     pub protection: u64,
     pub validator_state: Pubkey,
+}
+
+impl BittensorValidatorInfo {
+    pub const LEN: usize = 1 + 1 + 1 + 8 + 8 + 32 + 8 + 32; // 1 + 1 + 1 + 8 + 8 + 32 + 8 + 32 = 91
 }
