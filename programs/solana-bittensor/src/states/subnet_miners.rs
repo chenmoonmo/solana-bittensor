@@ -9,8 +9,8 @@ pub struct SubnetMiners {
     pub last_miner_id: i8,
     pub miners: [MinerInfo; MAX_MINER_NUMBER],
 }
+// 10240 - 1 - 1 = y * 89
 
-// (10240 - 2) / 89 = 114
 
 impl Default for SubnetMiners {
     #[inline]

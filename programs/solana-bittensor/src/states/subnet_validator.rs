@@ -10,6 +10,8 @@ pub struct SubnetValidators {
     pub validators: [ValidatorInfo; MAX_VALIDATOR_NUMBER],
 }
 
+// 10240 - 1 - 1 = x * 89
+
 impl Default for SubnetValidators {
     #[inline]
     fn default() -> Self {
@@ -86,5 +88,5 @@ impl Default for ValidatorInfo {
 }
 
 impl ValidatorInfo {
-    pub const LEN: usize = 1 + 32 + 8 + 8 + 8 + 8; // 65
+    pub const LEN: usize = 1 + 32 + 32 + 8 + 8 + 8 + 8; // 89
 }

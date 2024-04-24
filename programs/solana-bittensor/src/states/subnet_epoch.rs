@@ -11,6 +11,9 @@ pub struct SubnetEpochState {
     pub epoch_number: u64,
     pub epoch_start_timestamp: i64,
     pub miners_weights: [[u16; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER],
+    pub miner_total_weights: [u64; MAX_MINER_NUMBER],
+    pub validator_total_weights: [u16; MAX_VALIDATOR_NUMBER],
+    pub end_step: u8,
 }
 
 impl Default for SubnetEpochState {
@@ -21,6 +24,9 @@ impl Default for SubnetEpochState {
             epoch_number: 0,
             epoch_start_timestamp: 0,
             miners_weights: [[0; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER],
+            miner_total_weights: [0; MAX_MINER_NUMBER],
+            validator_total_weights: [0; MAX_VALIDATOR_NUMBER],
+            end_step: 0,
         }
     }
 }
@@ -35,6 +41,9 @@ impl SubnetEpochState {
     pub fn end_epoch(&mut self, epoch_start_timestamp: i64) -> () {
         self.epoch_start_timestamp = epoch_start_timestamp;
         self.miners_weights = [[0; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER];
+        self.miner_total_weights = [0; MAX_MINER_NUMBER];
+        self.validator_total_weights = [0; MAX_VALIDATOR_NUMBER];
+        self.end_step = 0;
         self.epoch_number += 1;
     }
 
@@ -44,7 +53,6 @@ impl SubnetEpochState {
         for (i, weight) in weights.into_iter().enumerate() {
             weights_array[i] = weight;
         }
-
         self.miners_weights[validator_id as usize] = weights_array;
     }
 

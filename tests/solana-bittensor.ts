@@ -338,7 +338,6 @@ describe("solana-bittensor", () => {
         .sort((a, b) => a.id - b.id)
     );
   });
-  return;
 
   it("Is initlialized Validator", async () => {
     // 每个用户注册 10 个 validator
@@ -366,6 +365,7 @@ describe("solana-bittensor", () => {
             taoStake: validator.subnet.subnetTaoStake,
             subnetState: validator.subnet.subnetPDA,
             subnetEpoch: validator.subnet.subnetWeightsPDA,
+            subnetValidators: validator.subnet.subnetValidatorsPDA,
             owner: validator.owner.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -404,7 +404,7 @@ describe("solana-bittensor", () => {
     // );
 
     const validatorsState = await program.account.validatorState.all();
-    const subnetState = await program.account.subnetState.all();
+    const subnetValidatorsState = await program.account.subnetValidators.all();
 
     console.log(
       "validators state",
@@ -419,7 +419,7 @@ describe("solana-bittensor", () => {
 
     console.log(
       "stake info",
-      subnetState.map((item) => {
+      subnetValidatorsState.map((item) => {
         return item.account.validators
           .filter((item) => +item.stake > 0)
           .sort((a, b) => a.id - b.id)
@@ -433,8 +433,6 @@ describe("solana-bittensor", () => {
       })
     );
   });
-
-  return;
 
   it("register validator when validators is full", async () => {
     let newUser = await createUser(taoMint);
@@ -459,6 +457,7 @@ describe("solana-bittensor", () => {
         taoStake: newValidator.subnet.subnetTaoStake,
         subnetState: newValidator.subnet.subnetPDA,
         subnetEpoch: newValidator.subnet.subnetWeightsPDA,
+        subnetValidators: newValidator.subnet.subnetValidatorsPDA,
         owner: newValidator.owner.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -492,6 +491,7 @@ describe("solana-bittensor", () => {
             minerState: miner.minerPDA,
             subnetState: miner.subnet.subnetPDA,
             subnetEpoch: miner.subnet.subnetWeightsPDA,
+            subnetMiners: miner.subnet.subnetMinersPDA,
             owner: miner.owner.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -545,14 +545,14 @@ describe("solana-bittensor", () => {
       })
     );
 
-    // const weightsState = await program.account.subnetEpochState.all();
+    const weightsState = await program.account.subnetEpochState.all();
 
-    // console.log(
-    //   "weights state",
-    //   weightsState.map((item) => {
-    //     return item.account.minersWeights.map((item) => item.toString());
-    //   })
-    // );
+    console.log(
+      "weights state",
+      weightsState.map((item) => {
+        return item.account.minersWeights.map((item) => item.toString());
+      })
+    );
   });
 
   it("register bittensor validator", async () => {
@@ -565,6 +565,7 @@ describe("solana-bittensor", () => {
             bittensorEpoch: bittensorEpochPDA,
             bittensorState: bittensorPDA,
             subnetState: validator.subnet.subnetPDA,
+            subnetValidators: validator.subnet.subnetValidatorsPDA,
             validatorState: validator.validatorPDA,
             owner: validator.owner.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
@@ -651,32 +652,119 @@ describe("solana-bittensor", () => {
   it("subnet end epoch", async () => {
     await Promise.all(
       subnets.map(async (subnet) => {
-        return (
-          program.methods
-            .endSubnetEpoch()
-            .accounts({
-              bittensorState: bittensorPDA,
-              subnetState: subnet.subnetPDA,
-              subnetEpoch: subnet.subnetWeightsPDA,
-              systemProgram: anchor.web3.SystemProgram.programId,
-              owner: subnet.user.keypair.publicKey,
-            })
-            // .preInstructions([instruction])
-            .signers([subnet.user.keypair])
-            .rpc()
-            .catch((err) => {
-              console.log("Error: ", err);
-            })
-        );
+        let endSubnetMedians1 = await program.methods
+          .endSubnetMedians1()
+          .accounts({
+            bittensorState: bittensorPDA,
+            subnetState: subnet.subnetPDA,
+            subnetEpoch: subnet.subnetWeightsPDA,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            owner: subnet.user.keypair.publicKey,
+          })
+          .instruction();
+
+        let endSubnetMedians2 = await program.methods
+          .endSubnetMedians2()
+          .accounts({
+            bittensorState: bittensorPDA,
+            subnetState: subnet.subnetPDA,
+            subnetEpoch: subnet.subnetWeightsPDA,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            owner: subnet.user.keypair.publicKey,
+          })
+          // .preInstructions([endSubnetMedians1])
+          .instruction();
+
+        let endSubnetEpoch1 = await program.methods
+          .endSubnetEpoch1()
+          .accounts({
+            bittensorState: bittensorPDA,
+            subnetState: subnet.subnetPDA,
+            subnetEpoch: subnet.subnetWeightsPDA,
+            subnetMiners: subnet.subnetMinersPDA,
+            subnetValidators: subnet.subnetValidatorsPDA,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            owner: subnet.user.keypair.publicKey,
+          })
+          // .preInstructions([endSubnetMedians2])
+          .instruction();
+
+        let endSubnetEpoch2 = await program.methods
+          .endSubnetEpoch2()
+          .accounts({
+            bittensorState: bittensorPDA,
+            subnetState: subnet.subnetPDA,
+            subnetEpoch: subnet.subnetWeightsPDA,
+            subnetMiners: subnet.subnetMinersPDA,
+            subnetValidators: subnet.subnetValidatorsPDA,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            owner: subnet.user.keypair.publicKey,
+          })
+          .instruction();
+
+        //  await program.methods
+        //   .endSubnetEpoch2()
+        //   .accounts({
+        //     bittensorState: bittensorPDA,
+        //     subnetState: subnet.subnetPDA,
+        //     subnetEpoch: subnet.subnetWeightsPDA,
+        //     subnetMiners: subnet.subnetMinersPDA,
+        //     subnetValidators: subnet.subnetValidatorsPDA,
+        //     systemProgram: anchor.web3.SystemProgram.programId,
+        //     owner: subnet.user.keypair.publicKey,
+        //   })
+        //   .preInstructions([endSubnetEpoch1])
+        //   .signers([subnet.user.keypair])
+        //   .rpc()
+        //   .catch((err) => {
+        //     console.log("Error: ", err);
+        //   });
+
+        return program.methods
+          .endSubnetEpoch()
+          .accounts({
+            bittensorState: bittensorPDA,
+            subnetState: subnet.subnetPDA,
+            subnetEpoch: subnet.subnetWeightsPDA,
+            subnetMiners: subnet.subnetMinersPDA,
+            subnetValidators: subnet.subnetValidatorsPDA,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            owner: subnet.user.keypair.publicKey,
+          })
+          .signers([subnet.user.keypair])
+          .preInstructions([
+            endSubnetMedians1,
+            endSubnetMedians2,
+            endSubnetEpoch1,
+            endSubnetEpoch2,
+          ])
+          .rpc()
+          .catch((err) => {
+            console.log("Error: ", err);
+          });
       })
     );
 
-    const subnetsState = await program.account.subnetState.all();
+    // let subnetEpochState = await program.account.subnetEpochState.all();
+
+    // console.log(
+    //   subnetEpochState.map(
+    //     ({ account: { minerTotalWeights, validatorTotalWeights } }) => {
+    //       return {
+    //         minerTotalWeights,
+    //         validatorTotalWeights,
+    //       };
+    //     }
+    //   )
+    // );
+
+    const subnetMinersState = await program.account.subnetMiners.all();
+    const subnetValidatorsState = await program.account.subnetValidators.all();
     const weightsState = await program.account.subnetEpochState.all();
 
     console.log(
       "miners state: ",
-      subnetsState.map((item) => {
+      subnetMinersState.map((item) => {
         return item.account.miners.map((item) =>
           [item.reward.toString(), item.protection.toString()].toString()
         );
@@ -685,7 +773,7 @@ describe("solana-bittensor", () => {
 
     console.log(
       "validators state: ",
-      subnetsState.map((item) => {
+      subnetValidatorsState.map((item) => {
         return item.account.validators.map((item) =>
           [item.reward.toString(), item.protection.toString()].toString()
         );
