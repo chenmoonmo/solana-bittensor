@@ -9,7 +9,6 @@ pub struct SubnetMiners {
     pub last_miner_id: i8,
     pub miners: [MinerInfo; MAX_MINER_NUMBER],
 }
-// 10240 - 1 - 1 = y * 89
 
 
 impl Default for SubnetMiners {
@@ -24,7 +23,7 @@ impl Default for SubnetMiners {
 }
 
 impl SubnetMiners {
-    pub const LEN: usize = 1 + 1 + MAX_MINER_NUMBER * MinerInfo::LEN; // 1 + 1 + 32 * 89 = 2849
+    pub const LEN: usize = 1 + 1 + MAX_MINER_NUMBER * MinerInfo::LEN; // 1 + 1 + 32 * 89 = 2849 10240kb
 
     pub fn create_miner(&mut self, owner: Pubkey, pubkey: Pubkey) -> u8 {
         let id = (self.last_miner_id + 1) as u8;

@@ -12,6 +12,7 @@ pub fn register_subnet(ctx: Context<RegisterSubnet>) -> Result<()> {
     ctx.accounts.subnet_epoch.load_init()?;
     ctx.accounts.subnet_miners.load_init()?;
     ctx.accounts.subnet_validators.load_init()?;
+
     Ok(())
 }
 

@@ -36,6 +36,13 @@ pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
 
     validator.reward = 0;
 
+    emit!(ValidatorClaimRewardEvent {
+        id: validator_id,
+        owner: ctx.accounts.owner.key(),
+        pubkey: ctx.accounts.validator_state.key(),
+        claim_amount: amount,
+    });
+
     Ok(())
 }
 

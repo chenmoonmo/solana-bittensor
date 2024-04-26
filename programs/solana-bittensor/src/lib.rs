@@ -60,7 +60,7 @@ pub mod solana_bittensor {
         instructions::validator_unstake(ctx, amount)
     }
     // 7. 给子网矿工打分
-    pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u64>) -> Result<()> {
+    pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u16>) -> Result<()> {
         instructions::set_miner_weights(ctx, weights)
     }
 

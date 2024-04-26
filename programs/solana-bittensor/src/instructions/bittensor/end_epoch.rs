@@ -21,6 +21,7 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
     }
 
     let total_weight = subnet_weights.iter().sum::<u64>();
+    let mut rewards = Box::new([0u64; MAX_SUBNET_NUMBER]);
 
     for i in 0..MAX_SUBNET_NUMBER {
         let reward = (REWARD_PER_EPOCH as u128)
@@ -28,6 +29,8 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
             .unwrap()
             .checked_div(total_weight as u128)
             .unwrap_or(0) as u64;
+
+        rewards[i as usize] = reward;
 
         bittensor_state.reward_subnet(i as u8, reward, subnet_weights[i])
     }
@@ -42,6 +45,13 @@ pub fn end_epoch(ctx: Context<EndEpoch>) -> Result<()> {
     let timestamp = Clock::get()?.unix_timestamp;
 
     bittensor_epoch.initialize_epoch(timestamp);
+
+    emit!(BittensorEpochEndEvent {
+        epoch_number: bittensor_epoch.epoch_number,
+        epoch_start_timestamp: bittensor_epoch.epoch_start_timestamp,
+        weights: bittensor_epoch.weights,
+        rewards: *rewards,
+    });
 
     Ok(())
 }

@@ -2,20 +2,26 @@ use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
 
-pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u64>) -> Result<()> {
+pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u16>) -> Result<()> {
     let subnet_epoch = &mut ctx.accounts.subnet_epoch.load_mut()?;
-    
+
     require!(subnet_epoch.end_step == 0, ErrorCode::EpochIsEnded);
 
     let validator_id = ctx.accounts.validator_state.id;
-    let sum_weights = weights.iter().sum::<u64>();
+    let sum_weights = weights.iter().sum::<u16>();
 
     require!(
-        sum_weights <= MAX_WEIGHT as u64,
+        sum_weights <= MAX_WEIGHT,
         ErrorCode::TotalWeightExceedsMaxWeight
     );
 
-    subnet_epoch.set_weights(validator_id, weights.iter().map(|x| *x as u16).collect());
+    subnet_epoch.set_weights(validator_id, &weights);
+
+    emit!(ValidatorSetWeightsEvent {
+        subnet_id: ctx.accounts.subnet_state.id,
+        validator_id: validator_id,
+        weights,
+    });
 
     Ok(())
 }

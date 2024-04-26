@@ -39,8 +39,19 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         MINER_REGISTER_FEE,
     )?;
 
+    let mut event = MinerRegisterEvent {
+        id: 0,
+        subnet_id: subnet_state.id,
+        owner,
+        stake: 0,
+        pubkey,
+        pre_pubkey: Pubkey::default(),
+    };
+
     if subnet_miners.last_miner_id < i8::try_from(MAX_MINER_NUMBER - 1).unwrap() {
         let miner_id = subnet_miners.create_miner(owner, pubkey);
+
+        event.id = miner_id;
 
         ctx.accounts
             .miner_state
@@ -55,6 +66,10 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
             .min_by_key(|v| v.last_weight)
         {
             Some(min_miner) => {
+
+                event.pre_pubkey = min_miner.pubkey;
+                event.id = min_miner.id;
+
                 ctx.accounts.miner_state.id = min_miner.id;
                 ctx.accounts.miner_state.subnet_id = subnet_state.id;
                 ctx.accounts.miner_state.owner = owner;
@@ -77,6 +92,8 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
             }
         }
     }
+
+    emit!(event);
 
     Ok(())
 }

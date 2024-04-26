@@ -22,7 +22,13 @@ pub fn set_subnet_weights(ctx: Context<SetSubnetWeights>, weights: Vec<u64>) -> 
     ctx.accounts
         .bittensor_epoch
         .load_mut()?
-        .set_weights(validator_id, weights);
+        .set_weights(validator_id, &weights);
+
+    emit!(BittensorValidatorSetWeightsEvent {
+        validator_id,
+        validator_state: ctx.accounts.validator_state.key(),
+        weights
+    });
 
     Ok(())
 }
