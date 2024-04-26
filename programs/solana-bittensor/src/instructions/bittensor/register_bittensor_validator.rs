@@ -22,8 +22,19 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
         ErrorCode::ValidatorExist
     );
 
+    let mut event = RegisterBittensorValidatorEvent {
+        pre_pubkey: Pubkey::default(),
+        validator_state: validator_state.key(),
+        id: 0,
+        owner,
+        validator_id,
+        subnet_id,
+        stake,
+        bounds,
+    };
+
     if bittensor_state.last_validator_id < i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
-        bittensor_state.create_bittensor_validator(
+        let id = bittensor_state.create_bittensor_validator(
             owner,
             validator_state.key(),
             subnet_id,
@@ -31,6 +42,8 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
             stake,
             bounds,
         );
+
+        event.id = id;
     } else {
         // 找出工作量最少的验证人
         let min_validator = bittensor_state
@@ -45,6 +58,9 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
             bounds > min_validator.bounds,
             ErrorCode::ValidatorNotEnoughBounds
         );
+
+        event.id = min_validator.id;
+        event.pre_pubkey = min_validator.validator_state;
 
         // 替换验证人
         min_validator.stake = stake;
@@ -61,6 +77,9 @@ pub fn register_bittensor_validator(ctx: Context<RegisterBittensorValidator>) ->
             .load_mut()?
             .remove_weights(min_validator.id);
     }
+
+    emit!(event);
+
     Ok(())
 }
 

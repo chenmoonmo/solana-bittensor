@@ -113,6 +113,13 @@ pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
 
     subnet_epoch.end_epoch(timestamp);
 
+    emit!(SubnetEpochEndEvent {
+        id: subnet_state.id,
+        epoch_number: subnet_epoch.epoch_number,
+        epoch_start_timestamp: subnet_epoch.epoch_start_timestamp,
+        miners_weights: subnet_epoch.miners_weights,
+    });
+
     Ok(())
 }
 

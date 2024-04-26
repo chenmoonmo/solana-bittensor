@@ -33,11 +33,20 @@ pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> 
         .load_mut()?
         .validator_add_stake(ctx.accounts.validator_state.key(), amount);
 
+    emit!(ValidatorAddStakeEvent {
+        id: validator_id,
+        owner: ctx.accounts.owner.key(),
+        stake: ctx.accounts.validator_state.stake,
+        pubkey: ctx.accounts.validator_state.key(),
+        add_amount: amount,
+    });
+
     Ok(())
 }
 
 pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
     let validator = &mut ctx.accounts.validator_state;
+    let pubkey = validator.key();
 
     validator.remove_stake(amount);
 
@@ -49,7 +58,7 @@ pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()
     ctx.accounts
         .bittensor_state
         .load_mut()?
-        .validator_remove_stake(ctx.accounts.validator_state.key(), amount);
+        .validator_remove_stake(pubkey, amount);
 
     let bump = ctx.bumps.bittensor_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
@@ -67,6 +76,14 @@ pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()
         amount,
     )?;
 
+    emit!(ValidatorRemoveStakeEvent {
+        id: validator.id,
+        owner: ctx.accounts.owner.key(),
+        stake: validator.stake,
+        remove_amount: amount,
+        pubkey,
+    });
+
     Ok(())
 }
 
@@ -81,7 +98,7 @@ pub struct ValidatorStake<'info> {
 
     #[account(mut)]
     pub subnet_state: Box<Account<'info, SubnetState>>,
-    
+
     #[account(
         mut,
         seeds = [b"subnet_epoch",subnet_state.key().as_ref()],

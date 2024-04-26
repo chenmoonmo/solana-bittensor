@@ -48,6 +48,7 @@ pub fn initialize_subnet_validator(
         ErrorCode::StakeAmountTooLow
     );
 
+
     if stake_amount > 0 {
         token::transfer(
             CpiContext::new(
@@ -62,6 +63,15 @@ pub fn initialize_subnet_validator(
         )?;
     }
 
+
+    let mut event = ValidatorRegisterEvent {
+        id: 0,
+        owner,
+        stake: stake_amount,
+        pubkey,
+        pre_pubkey: Pubkey::default(),
+    };
+
     // 验证人没满
     if subnet_validators.last_validator_id < i8::try_from(MAX_VALIDATOR_NUMBER - 1).unwrap() {
         let owner = ctx.accounts.owner.key();
@@ -72,6 +82,8 @@ pub fn initialize_subnet_validator(
         validator_state.id = validator_id;
         validator_state.owner = owner;
         validator_state.stake = stake_amount;
+
+        event.id = validator_id;
     } else {
         // 如果验证人已经满了
         // 淘汰 前一个周期 bounds 最低且不在保护期的验证人
@@ -83,6 +95,10 @@ pub fn initialize_subnet_validator(
             .min_by_key(|v| v.bounds)
         {
             Some(min_validator) => {
+
+                event.id = min_validator.id;
+                event.pre_pubkey = min_validator.pubkey;
+
                 // 修改该验证人的状态
                 // 将 subnet 的验证人替换为新的验证人
                 ctx.accounts.validator_state.id = min_validator.id;
@@ -107,6 +123,8 @@ pub fn initialize_subnet_validator(
             }
         }
     }
+
+    emit!(event);
 
     Ok(())
 }

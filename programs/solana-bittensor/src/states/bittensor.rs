@@ -9,7 +9,6 @@ pub const EPOCH_DURATION: i64 = 60 * 60 * 1;
 #[repr(packed)]
 #[derive(Default, Debug)]
 pub struct BittensorState {
-    pub epoch_start_timestamp: i64,
     pub total_stake: u64,
     pub last_validator_id: i8,
     pub last_subnet_id: i8,
@@ -25,17 +24,12 @@ impl BittensorState {
         + SubnetInfo::LEN * MAX_SUBNET_NUMBER
         + BittensorValidatorInfo::LEN * BITTENSOR_VALIDATOR_MAX_NUMBER; // 8 + 8 + 1 + 1 + 32 * 89 + 32 * 91 = 8224
 
-    pub fn initialize(&mut self, epoch_start_timestamp: i64) -> () {
-        self.epoch_start_timestamp = epoch_start_timestamp;
+    pub fn initialize(&mut self) -> () {
         self.total_stake = 0;
         self.last_validator_id = -1;
         self.last_subnet_id = -1;
         self.subnets = [SubnetInfo::default(); MAX_SUBNET_NUMBER];
         self.validators = [BittensorValidatorInfo::default(); BITTENSOR_VALIDATOR_MAX_NUMBER];
-    }
-
-    pub fn update_epoch_start_timestamp(&mut self, timestamp: i64) -> () {
-        self.epoch_start_timestamp = timestamp;
     }
 
     pub fn create_subnet(&mut self, owner: Pubkey, subnet_state: Pubkey) -> u8 {
@@ -125,18 +119,42 @@ impl SubnetInfo {
 #[derive(Default, Debug)]
 pub struct BittensorValidatorInfo {
     pub id: u8,
+    pub owner: Pubkey,
+    pub validator_state: Pubkey,
     pub validator_id: u8,
     pub subnet_id: u8,
     // 质押数量
     pub stake: u64,
     //工作量
     pub bounds: u64,
-    pub owner: Pubkey,
     // 保护期
     pub protection: u64,
-    pub validator_state: Pubkey,
 }
 
 impl BittensorValidatorInfo {
     pub const LEN: usize = 1 + 1 + 1 + 8 + 8 + 32 + 8 + 32; // 1 + 1 + 1 + 8 + 8 + 32 + 8 + 32 = 91
+}
+
+// event when new validator is added
+#[event]
+#[cfg_attr(feature = "client", derive(Debug))]
+pub struct RegisterBittensorValidatorEvent {
+    pub pre_pubkey: Pubkey,
+    pub validator_state: Pubkey,
+    pub owner: Pubkey,
+    pub id: u8,
+    pub validator_id: u8,
+    pub subnet_id: u8,
+    pub stake: u64,
+    pub bounds: u64,
+}
+
+// event when new subnet is added
+#[event]
+#[cfg_attr(feature = "client", derive(Debug))]
+pub struct RegisterBittensorSubnetEvent {
+    pub pre_pubkey: Pubkey,
+    pub subnet_state: Pubkey,
+    pub owner: Pubkey,
+    pub id: u8,
 }

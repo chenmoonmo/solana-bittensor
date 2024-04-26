@@ -12,9 +12,9 @@ pub struct BittensorEpochState {
 }
 
 impl BittensorEpochState {
-    pub const LEN:usize = 8 + 8 + 8 * MAX_SUBNET_NUMBER * BITTENSOR_VALIDATOR_MAX_NUMBER; // 8 + 8 + 8 * 32 * 32 = 8224
-    
-    pub fn set_weights(&mut self, validator_id: u8, weights: Vec<u64>) -> () {
+    pub const LEN: usize = 8 + 8 + 8 * MAX_SUBNET_NUMBER * BITTENSOR_VALIDATOR_MAX_NUMBER; // 8 + 8 + 8 * 32 * 32 = 8224
+
+    pub fn set_weights(&mut self, validator_id: u8, weights: &Vec<u64>) -> () {
         let mut new_weights = [0u64; MAX_SUBNET_NUMBER];
         for i in 0..weights.len() {
             new_weights[i] = weights[i];
@@ -37,4 +37,22 @@ impl BittensorEpochState {
         self.weights = [[0; MAX_SUBNET_NUMBER]; BITTENSOR_VALIDATOR_MAX_NUMBER];
         self.epoch_number += 1;
     }
+}
+
+#[event]
+#[cfg_attr(feature = "client", derive(Debug))]
+pub struct BittensorEpochEndEvent {
+    pub epoch_number: u64,
+    pub epoch_start_timestamp: i64,
+    pub weights: [[u64; MAX_SUBNET_NUMBER]; BITTENSOR_VALIDATOR_MAX_NUMBER],
+    pub rewards: [u64; MAX_SUBNET_NUMBER],
+}
+
+//event when validator set weights
+#[event]
+#[cfg_attr(feature = "client", derive(Debug))]
+pub struct BittensorValidatorSetWeightsEvent {
+    pub validator_id: u8,
+    pub validator_state: Pubkey,
+    pub weights: Vec<u64>,
 }

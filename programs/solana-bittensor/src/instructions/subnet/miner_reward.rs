@@ -33,6 +33,14 @@ pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
 
     miner.reward = 0;
 
+    emit!(MinerClaimRewardEvent {
+        id: miner_id,
+        subnet_id: ctx.accounts.subnet_state.id,
+        owner: ctx.accounts.owner.key(),
+        pubkey: ctx.accounts.user_tao_ata.owner,
+        claim_amount: amount,
+    });
+
     Ok(())
 }
 

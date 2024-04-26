@@ -55,11 +55,11 @@ impl SubnetEpochState {
         self.epoch_number += 1;
     }
 
-    pub fn set_weights(&mut self, validator_id: u8, weights: Vec<u16>) -> () {
+    pub fn set_weights(&mut self, validator_id: u8, weights: &Vec<u16>) -> () {
         // 将 Vec<u64> 转换为 [u64; MAX_MINER_NUMBER]
         let mut weights_array = [0; MAX_MINER_NUMBER];
         for (i, weight) in weights.into_iter().enumerate() {
-            weights_array[i] = weight;
+            weights_array[i] = weight.clone();
         }
         self.miners_weights[validator_id as usize] = weights_array;
     }
@@ -73,4 +73,23 @@ impl SubnetEpochState {
             self.miners_weights[i][miner_id as usize] = 0;
         }
     }
+}
+
+// event when subnet epoch end
+#[event]
+#[cfg_attr(feature = "client", derive(Debug))]
+pub struct SubnetEpochEndEvent {
+    pub id: u8,
+    pub epoch_number: u64,
+    pub epoch_start_timestamp: i64,
+    pub miners_weights: [[u16; MAX_MINER_NUMBER]; MAX_VALIDATOR_NUMBER],
+}
+
+// event when validator set weights
+#[event]
+#[cfg_attr(feature = "client", derive(Debug))]
+pub struct ValidatorSetWeightsEvent {
+    pub subnet_id: u8,
+    pub validator_id: u8,
+    pub weights: Vec<u16>,
 }

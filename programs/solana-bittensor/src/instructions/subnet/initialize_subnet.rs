@@ -36,8 +36,16 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
 
     let last_subnet_id = bittensor_state.last_subnet_id;
 
+    let mut event = RegisterBittensorSubnetEvent {
+        pre_pubkey: Pubkey::default(),
+        subnet_state: pubkey,
+        owner,
+        id: 0
+    };
+
     if last_subnet_id < i8::try_from(MAX_SUBNET_NUMBER - 1).unwrap() {
         let subnet_id = bittensor_state.create_subnet(owner, pubkey);
+        event.id = subnet_id;
 
         subnet_state.initialize(subnet_id);
         ctx.accounts.subnet_epoch.load_mut()?.epoch_start_timestamp = Clock::get()?.unix_timestamp;
@@ -53,6 +61,9 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
         {
             Some(min_subnet) => {
                 let subnet_id = min_subnet.id;
+
+                event.id = subnet_id;
+                event.pre_pubkey = min_subnet.subnet_state;
 
                 min_subnet.owner = owner;
                 min_subnet.distribute_reward = 0;
@@ -82,6 +93,9 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
             }
         }
     }
+
+    emit!(event);
+
     Ok(())
 }
 
