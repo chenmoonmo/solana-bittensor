@@ -7,6 +7,7 @@ pub struct MinerState {
     pub subnet_id: u8,
     pub owner: Pubkey,
     pub stake: u64,
+    // pub rpc: String,
 }
 
 impl MinerState {
