@@ -2,6 +2,9 @@ use crate::states::*;
 use anchor_lang::prelude::*;
 
 pub fn register_subnet(ctx: Context<RegisterSubnet>) -> Result<()> {
+    ctx.accounts.subnet_epoch.load_init()?;
+    ctx.accounts.subnet_validators.load_init()?;
+
     ctx.accounts
         .subnet_state
         .register(ctx.accounts.owner.key(), ctx.accounts.subnet_epoch.key());
@@ -18,9 +21,6 @@ pub fn register_subnet(ctx: Context<RegisterSubnet>) -> Result<()> {
         ctx.accounts.subnet_miners8.key(),
         ctx.accounts.subnet_miners9.key(),
     ];
-
-    ctx.accounts.subnet_epoch.load_init()?;
-    ctx.accounts.subnet_validators.load_init()?;
 
     ctx.accounts.subnet_miners.load_init()?.group_id = 0;
     ctx.accounts.subnet_miners1.load_init()?.group_id = 1;
@@ -66,20 +66,20 @@ pub struct RegisterSubnet<'info> {
     #[account(
         init,
         payer = owner,
-        space = 8 + SubnetMiners::LEN,
-        seeds = [b"subnet_miners 0",subnet_state.key().as_ref()],
-        bump
-    )]
-    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
-
-    #[account(
-        init,
-        payer = owner,
         space = 8 + SubnetValidators::LEN,
         seeds = [b"subnet_validators",subnet_state.key().as_ref()],
         bump
     )]
     pub subnet_validators: AccountLoader<'info, SubnetValidators>,
+
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + SubnetMiners::LEN,
+        seeds = [b"subnet_miners 0",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
 
     #[account(
         init,

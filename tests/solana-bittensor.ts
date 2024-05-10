@@ -11,7 +11,16 @@ interface User {
 interface Subnet {
   subnetPDA: anchor.web3.PublicKey;
   subnetWeightsPDA: anchor.web3.PublicKey;
-  subnetMinersPDA: anchor.web3.PublicKey;
+  subnetMiners: anchor.web3.PublicKey;
+  subnetMiners1: anchor.web3.PublicKey;
+  subnetMiners2: anchor.web3.PublicKey;
+  subnetMiners3: anchor.web3.PublicKey;
+  subnetMiners4: anchor.web3.PublicKey;
+  subnetMiners5: anchor.web3.PublicKey;
+  subnetMiners6: anchor.web3.PublicKey;
+  subnetMiners7: anchor.web3.PublicKey;
+  subnetMiners8: anchor.web3.PublicKey;
+  subnetMiners9: anchor.web3.PublicKey;
   subnetValidatorsPDA: anchor.web3.PublicKey;
   subnetTaoStake: anchor.web3.PublicKey;
   userTaoAta: anchor.web3.PublicKey;
@@ -115,15 +124,36 @@ describe("solana-bittensor", () => {
       program.programId
     );
 
-    const [subnetMinersPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("subnet_miners"), subnetPDA.toBuffer()],
-      program.programId
-    );
+    let subnetMinersPDAs = [];
+
+    for (let i = 0; i < 10; i++) {
+      const [subnetMinersPDA] = anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from(`subnet_miners ${i}`), subnetPDA.toBuffer()],
+        program.programId
+      );
+
+      subnetMinersPDAs.push(subnetMinersPDA);
+    }
+
+    const [
+      subnetMiners,
+      subnetMiners1,
+      subnetMiners2,
+      subnetMiners3,
+      subnetMiners4,
+      subnetMiners5,
+      subnetMiners6,
+      subnetMiners7,
+      subnetMiners8,
+      subnetMiners9,
+    ] = subnetMinersPDAs;
 
     const [subnetValidatorsPDA] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("subnet_validators"), subnetPDA.toBuffer()],
       program.programId
     );
+
+    console.log("subnetPDA", subnetValidatorsPDA.toBase58());
 
     const [subnetTaoStake] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("tao_stake"), subnetPDA.toBuffer()],
@@ -133,7 +163,16 @@ describe("solana-bittensor", () => {
     return {
       subnetPDA,
       subnetWeightsPDA,
-      subnetMinersPDA,
+      subnetMiners,
+      subnetMiners1,
+      subnetMiners2,
+      subnetMiners3,
+      subnetMiners4,
+      subnetMiners5,
+      subnetMiners6,
+      subnetMiners7,
+      subnetMiners8,
+      subnetMiners9,
       subnetValidatorsPDA,
       subnetTaoStake,
       userTaoAta,
@@ -266,71 +305,6 @@ describe("solana-bittensor", () => {
   });
 
   it("Is initlialized subnet", async () => {
-    const usettest = await createUser(taoMint);
-
-    const [subnetPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("subnet_state"), usettest.keypair.publicKey.toBuffer()],
-      program.programId
-    );
-
-    const [subnetWeightsPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("subnet_epoch"), subnetPDA.toBuffer()],
-      program.programId
-    );
-
-    const [subnetValidatorsPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-      [Buffer.from(`subnet_validators`), subnetPDA.toBuffer()],
-      program.programId
-    );
-
-    let minersPDAs = [];
-
-    for (let i = 0; i < 10; i++) {
-      const [subnetMinersPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from(`subnet_miners ${i}`), subnetPDA.toBuffer()],
-        program.programId
-      );
-
-      minersPDAs.push(subnetMinersPDA);
-    }
-
-    await program.methods
-      .registerSubnet()
-      .accounts({
-        bittensorState: bittensorPDA,
-        subnetState: subnetPDA,
-        subnetEpoch: subnetWeightsPDA,
-        subnetValidators: subnetValidatorsPDA,
-        subnetMiners: minersPDAs[0],
-        subnetMiners1: minersPDAs[1],
-        subnetMiners2: minersPDAs[2],
-        subnetMiners3: minersPDAs[3],
-        subnetMiners4: minersPDAs[4],
-        subnetMiners5: minersPDAs[5],
-        subnetMiners6: minersPDAs[6],
-        subnetMiners7: minersPDAs[7],
-        subnetMiners8: minersPDAs[8],
-        subnetMiners9: minersPDAs[9],
-        owner: usettest.keypair.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      })
-      .signers([usettest.keypair])
-      .rpc()
-      .catch((error) => {
-        console.log("error", error);
-      });
-
-    const data = await program.account.subnetState.fetch(subnetPDA);
-    const data2 = await program.account.subnetMiners.fetch(minersPDAs[0]);
-    // const data3 = await program.account.minerState.fetch(minersPDAs[2]);
-
-    console.log("subnet", data);
-    console.log("miner", data2);
-    // console.log("miner", data3);
-  });
-
-  return;
-  it("Is initlialized subnet", async () => {
     program.addEventListener("RegisterBittensorSubnetEvent", (event) => {
       console.log("RegisterBittensorSubnetEvent", event);
     });
@@ -343,18 +317,46 @@ describe("solana-bittensor", () => {
 
     await Promise.all(
       subnets.map(async (item, index) => {
-        const register = await program.methods
+        const {
+          subnetMiners,
+          subnetMiners1,
+          subnetMiners2,
+          subnetMiners3,
+          subnetMiners4,
+          subnetMiners5,
+          subnetMiners6,
+          subnetMiners7,
+          subnetMiners8,
+          subnetMiners9,
+        } = item;
+
+        await program.methods
           .registerSubnet()
           .accounts({
             bittensorState: bittensorPDA,
             subnetState: item.subnetPDA,
             subnetEpoch: item.subnetWeightsPDA,
-            subnetMiners: item.subnetMinersPDA,
+            subnetMiners,
+            subnetMiners1,
+            subnetMiners2,
+            subnetMiners3,
+            subnetMiners4,
+            subnetMiners5,
+            subnetMiners6,
+            subnetMiners7,
+            subnetMiners8,
+            subnetMiners9,
             subnetValidators: item.subnetValidatorsPDA,
             owner: users[index].keypair.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
           })
-          .instruction();
+          .signers([users[index].keypair])
+          .rpc()
+          .catch((err) => {
+            console.log("Error: ", err);
+          });
+
+        await sleep(3000);
 
         return program.methods
           .initializeSubnet()
@@ -364,7 +366,16 @@ describe("solana-bittensor", () => {
             bittensorState: bittensorPDA,
             bittensorEpoch: bittensorEpochPDA,
             subnetEpoch: item.subnetWeightsPDA,
-            subnetMiners: item.subnetMinersPDA,
+            subnetMiners,
+            subnetMiners1,
+            subnetMiners2,
+            subnetMiners3,
+            subnetMiners4,
+            subnetMiners5,
+            subnetMiners6,
+            subnetMiners7,
+            subnetMiners8,
+            subnetMiners9,
             subnetValidators: item.subnetValidatorsPDA,
             taoStake: item.subnetTaoStake,
             owner: users[index].keypair.publicKey,
@@ -373,7 +384,7 @@ describe("solana-bittensor", () => {
             tokenProgram: token.TOKEN_PROGRAM_ID,
           })
           .signers([users[index].keypair])
-          .preInstructions([register])
+
           .rpc()
           .catch((err) => {
             console.log("Error: ", err);
@@ -408,6 +419,8 @@ describe("solana-bittensor", () => {
         .sort((a, b) => a.id - b.id)
     );
   });
+
+  return;
 
   it("Is initlialized Validator", async () => {
     // 每个用户注册 10 个 validator

@@ -56,6 +56,7 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         ctx.accounts
             .miner_state
             .initialize(miner_id, subnet_state.id, owner);
+        
     } else {
         // 淘汰 前一个周期 bounds 最低且不在保护期的矿工
 

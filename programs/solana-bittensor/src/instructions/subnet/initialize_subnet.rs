@@ -75,6 +75,16 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
                 subnet_state.initialize(subnet_id);
 
                 ctx.accounts.subnet_miners.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_miners1.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_miners2.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_miners3.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_miners4.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_miners5.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_miners6.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_miners7.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_miners8.load_mut()?.id = subnet_id;
+                ctx.accounts.subnet_miners9.load_mut()?.id = subnet_id;
+
                 ctx.accounts.subnet_validators.load_mut()?.id = subnet_id;
 
                 ctx.accounts
@@ -131,10 +141,73 @@ pub struct InitializeSubnet<'info> {
 
     #[account(
         mut,
-        seeds = [b"subnet_miners",subnet_state.key().as_ref()],
+        seeds = [b"subnet_miners 0",subnet_state.key().as_ref()],
         bump
     )]
     pub subnet_miners: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 1",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners1: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 2",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners2: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 3",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners3: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 4",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners4: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 5",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners5: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 6",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners6: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 7",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners7: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 8",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners8: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 9",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners9: AccountLoader<'info, SubnetMiners>,
 
     #[account(
         mut,
