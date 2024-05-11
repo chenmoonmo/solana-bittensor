@@ -40,7 +40,7 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
         pre_pubkey: Pubkey::default(),
         subnet_state: pubkey,
         owner,
-        id: 0
+        id: 0,
     };
 
     if last_subnet_id < i8::try_from(MAX_SUBNET_NUMBER - 1).unwrap() {
@@ -48,7 +48,6 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
         event.id = subnet_id;
 
         subnet_state.initialize(subnet_id);
-        ctx.accounts.subnet_epoch.load_mut()?.epoch_start_timestamp = Clock::get()?.unix_timestamp;
         ctx.accounts.subnet_miners.load_mut()?.id = subnet_id;
         ctx.accounts.subnet_validators.load_mut()?.id = subnet_id;
     } else {
@@ -86,11 +85,6 @@ pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
                 ctx.accounts.subnet_miners9.load_mut()?.id = subnet_id;
 
                 ctx.accounts.subnet_validators.load_mut()?.id = subnet_id;
-
-                ctx.accounts
-                    .subnet_epoch
-                    .load_mut()?
-                    .reset(Clock::get()?.unix_timestamp);
 
                 // 清除子网的得分
                 ctx.accounts
@@ -131,13 +125,6 @@ pub struct InitializeSubnet<'info> {
         bump
     )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
-
-    #[account(
-        mut,
-        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
-        bump
-    )]
-    pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
 
     #[account(
         mut,
@@ -226,8 +213,7 @@ pub struct InitializeSubnet<'info> {
 
     // 质押代币存储账户
     #[account(
-        init_if_needed,
-        payer = owner,
+        mut,
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,

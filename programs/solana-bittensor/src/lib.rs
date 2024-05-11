@@ -19,6 +19,10 @@ pub mod solana_bittensor {
         instructions::register_subnet(ctx)
     }
 
+    pub fn register_subnet_weights(ctx: Context<RegisterSubnetWeights>) -> Result<()> {
+        instructions::register_subnet_weights(ctx)
+    }
+
     // 注册子网
     pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
         instructions::initialize_subnet(ctx)
@@ -70,27 +74,27 @@ pub mod solana_bittensor {
     }
     // 6. 结束子网周期
     // 6.1 计算中位数
-    pub fn end_subnet_medians1(ctx: Context<EndSubnetMedians>) -> Result<()> {
-        instructions::end_subnet_medians1(ctx)
-    }
+    // pub fn end_subnet_medians1(ctx: Context<EndSubnetMedians>) -> Result<()> {
+    //     instructions::end_subnet_medians1(ctx)
+    // }
 
-    pub fn end_subnet_medians2(ctx: Context<EndSubnetMedians>) -> Result<()> {
-        instructions::end_subnet_medians2(ctx)
-    }
+    // pub fn end_subnet_medians2(ctx: Context<EndSubnetMedians>) -> Result<()> {
+    //     instructions::end_subnet_medians2(ctx)
+    // }
 
-    // 6.2 计算权重
-    pub fn end_subnet_epoch1(ctx: Context<EndSubnetEpoch>) -> Result<()> {
-        instructions::end_subnet_epoch1(ctx)
-    }
+    // // 6.2 计算权重
+    // pub fn end_subnet_epoch1(ctx: Context<EndSubnetEpoch>) -> Result<()> {
+    //     instructions::end_subnet_epoch1(ctx)
+    // }
 
-    pub fn end_subnet_epoch2(ctx: Context<EndSubnetEpoch>) -> Result<()> {
-        instructions::end_subnet_epoch2(ctx)
-    }
+    // pub fn end_subnet_epoch2(ctx: Context<EndSubnetEpoch>) -> Result<()> {
+    //     instructions::end_subnet_epoch2(ctx)
+    // }
 
-    // 6.3 分配奖励
-    pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
-        instructions::end_subnet_epoch(ctx)
-    }
+    // // 6.3 分配奖励
+    // pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
+    //     instructions::end_subnet_epoch(ctx)
+    // }
     // 8. 矿工提取奖励
     pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
         instructions::miner_reward(ctx)

@@ -18,7 +18,6 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
     );
 
     let subnet_state = &mut ctx.accounts.subnet_state;
-    let subnet_miners = &mut ctx.accounts.subnet_miners.load_mut()?;
     let owner = ctx.accounts.owner.key();
     let pubkey = ctx.accounts.miner_state.key();
 
@@ -48,54 +47,75 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         pre_pubkey: Pubkey::default(),
     };
 
-    if subnet_miners.last_miner_id < i8::try_from(MAX_MINER_NUMBER - 1).unwrap() {
-        let miner_id = subnet_miners.create_miner(owner, pubkey);
+    // 首先找到一个 last_miner_id 为 <  100 的 subnet_miners 矿工组
+    match [
+        ctx.accounts.subnet_miners.load_mut()?,
+        ctx.accounts.subnet_miners1.load_mut()?,
+        ctx.accounts.subnet_miners2.load_mut()?,
+        ctx.accounts.subnet_miners3.load_mut()?,
+        ctx.accounts.subnet_miners4.load_mut()?,
+        ctx.accounts.subnet_miners5.load_mut()?,
+        ctx.accounts.subnet_miners6.load_mut()?,
+        ctx.accounts.subnet_miners7.load_mut()?,
+        ctx.accounts.subnet_miners8.load_mut()?,
+        ctx.accounts.subnet_miners9.load_mut()?,
+    ]
+    .iter_mut()
+    .find(|v| v.last_miner_id < i8::try_from(99).unwrap())
+    {
+        Some(miners) => {
+            let miner_id = miners.create_miner(owner, pubkey);
 
-        event.id = miner_id;
+            event.id = miner_id;
 
-        ctx.accounts
-            .miner_state
-            .initialize(miner_id, subnet_state.id, owner);
-        
-    } else {
-        // 淘汰 前一个周期 bounds 最低且不在保护期的矿工
-
-        match subnet_miners
-            .miners
+            ctx.accounts
+                .miner_state
+                .initialize(miner_id, subnet_state.id, owner);
+        }
+        None => {
+            // 如果没找到，则从全部的矿工组中淘汰一个得分最低的矿工
+            match [
+                ctx.accounts.subnet_miners.load_mut()?,
+                ctx.accounts.subnet_miners1.load_mut()?,
+                ctx.accounts.subnet_miners2.load_mut()?,
+                ctx.accounts.subnet_miners3.load_mut()?,
+                ctx.accounts.subnet_miners4.load_mut()?,
+                ctx.accounts.subnet_miners5.load_mut()?,
+                ctx.accounts.subnet_miners6.load_mut()?,
+                ctx.accounts.subnet_miners7.load_mut()?,
+                ctx.accounts.subnet_miners8.load_mut()?,
+                ctx.accounts.subnet_miners9.load_mut()?,
+            ]
             .iter_mut()
+            .flat_map(|v| v.miners.iter_mut())
             .filter(|v| v.protection == 0)
             .min_by_key(|v| v.last_weight)
-        {
-            Some(min_miner) => {
+            {
+                Some(min_miner) => {
+                    event.pre_pubkey = min_miner.pubkey;
+                    event.id = min_miner.id;
 
-                event.pre_pubkey = min_miner.pubkey;
-                event.id = min_miner.id;
+                    ctx.accounts.miner_state.id = min_miner.id;
+                    ctx.accounts.miner_state.subnet_id = subnet_state.id;
+                    ctx.accounts.miner_state.owner = owner;
 
-                ctx.accounts.miner_state.id = min_miner.id;
-                ctx.accounts.miner_state.subnet_id = subnet_state.id;
-                ctx.accounts.miner_state.owner = owner;
+                    min_miner.stake = 0;
+                    min_miner.last_weight = 0;
+                    min_miner.reward = 0;
+                    min_miner.protection = 1;
+                    min_miner.owner = owner;
+                    min_miner.pubkey = pubkey;
 
-                min_miner.stake = 0;
-                min_miner.last_weight = 0;
-                min_miner.reward = 0;
-                min_miner.protection = 1;
-                min_miner.owner = owner;
-                min_miner.pubkey = pubkey;
-
-                // 将矿工的得分清零
-                ctx.accounts
-                    .subnet_epoch
-                    .load_mut()?
-                    .remove_miner_weights(min_miner.id);
-            }
-            None => {
-                require!(false, ErrorCode::NoMinerCanReplace)
+                    // TODO: 将矿工的得分清零
+                }
+                None => {
+                    require!(false, ErrorCode::NoMinerCanReplace)
+                }
             }
         }
     }
 
     emit!(event);
-
     Ok(())
 }
 
@@ -113,17 +133,73 @@ pub struct InitializeSubnetMiner<'info> {
 
     #[account(
         mut,
-        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
-        bump
-    )]
-    pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
-
-    #[account(
-        mut,
-        seeds = [b"subnet_miners",subnet_state.key().as_ref()],
+        seeds = [b"subnet_miners 0",subnet_state.key().as_ref()],
         bump
     )]
     pub subnet_miners: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 1",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners1: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 2",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners2: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 3",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners3: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 4",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners4: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 5",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners5: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 6",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners6: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 7",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners7: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 8",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners8: AccountLoader<'info, SubnetMiners>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_miners 9",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_miners9: AccountLoader<'info, SubnetMiners>,
 
     #[account(
         init_if_needed,

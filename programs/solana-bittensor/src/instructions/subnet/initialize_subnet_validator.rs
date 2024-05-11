@@ -48,7 +48,6 @@ pub fn initialize_subnet_validator(
         ErrorCode::StakeAmountTooLow
     );
 
-
     if stake_amount > 0 {
         token::transfer(
             CpiContext::new(
@@ -62,7 +61,6 @@ pub fn initialize_subnet_validator(
             stake_amount,
         )?;
     }
-
 
     let mut event = ValidatorRegisterEvent {
         id: 0,
@@ -95,7 +93,6 @@ pub fn initialize_subnet_validator(
             .min_by_key(|v| v.bounds)
         {
             Some(min_validator) => {
-
                 event.id = min_validator.id;
                 event.pre_pubkey = min_validator.pubkey;
 
@@ -112,11 +109,8 @@ pub fn initialize_subnet_validator(
                 min_validator.owner = owner;
                 min_validator.pubkey = pubkey;
 
-                // 将验证人的打分清零
-                ctx.accounts
-                    .subnet_epoch
-                    .load_mut()?
-                    .remove_weights(min_validator.id);
+                // TODO:将验证人的打分清零
+                
             }
             None => {
                 require!(false, ErrorCode::NoValidatorCanReplace)
@@ -140,13 +134,6 @@ pub struct InitializeSubnetValidator<'info> {
 
     #[account(mut)]
     pub subnet_state: Box<Account<'info, SubnetState>>,
-
-    #[account(
-        mut,
-        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
-        bump
-    )]
-    pub subnet_epoch: AccountLoader<'info, SubnetEpochState>,
 
     #[account(
         init_if_needed,

@@ -8,7 +8,7 @@ pub struct SubnetMiners {
     pub id: u8,
     pub group_id: u8,
     pub last_miner_id: i8,
-    pub miners: [MinerInfo; MAX_MINER_NUMBER],
+    pub miners: [MinerInfo; 100],
 }
 
 impl Default for SubnetMiners {
@@ -18,7 +18,7 @@ impl Default for SubnetMiners {
             id: 0,
             group_id: 0,
             last_miner_id: -1,
-            miners: [MinerInfo::default(); MAX_MINER_NUMBER],
+            miners: [MinerInfo::default(); 100],
         }
     }
 }

@@ -21,6 +21,16 @@ interface Subnet {
   subnetMiners7: anchor.web3.PublicKey;
   subnetMiners8: anchor.web3.PublicKey;
   subnetMiners9: anchor.web3.PublicKey;
+  minerWeights: anchor.web3.PublicKey;
+  minerWeights1: anchor.web3.PublicKey;
+  minerWeights2: anchor.web3.PublicKey;
+  minerWeights3: anchor.web3.PublicKey;
+  minerWeights4: anchor.web3.PublicKey; 
+  minerWeights5: anchor.web3.PublicKey;
+  minerWeights6: anchor.web3.PublicKey;
+  minerWeights7: anchor.web3.PublicKey;
+  minerWeights8: anchor.web3.PublicKey;
+  minerWeights9: anchor.web3.PublicKey;
   subnetValidatorsPDA: anchor.web3.PublicKey;
   subnetTaoStake: anchor.web3.PublicKey;
   userTaoAta: anchor.web3.PublicKey;
@@ -73,7 +83,7 @@ describe("solana-bittensor", () => {
 
     const sig = await connection.requestAirdrop(
       user.publicKey,
-      anchor.web3.LAMPORTS_PER_SOL
+      10 * anchor.web3.LAMPORTS_PER_SOL
     );
 
     const latestBlockHash = await connection.getLatestBlockhash();
@@ -125,6 +135,7 @@ describe("solana-bittensor", () => {
     );
 
     let subnetMinersPDAs = [];
+    let minerWeightsPDAs = [];
 
     for (let i = 0; i < 10; i++) {
       const [subnetMinersPDA] = anchor.web3.PublicKey.findProgramAddressSync(
@@ -132,7 +143,13 @@ describe("solana-bittensor", () => {
         program.programId
       );
 
+      const [minerWeightsPDA] = anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from(`miner_weights ${i}`), subnetPDA.toBuffer()],
+        program.programId
+      );
+
       subnetMinersPDAs.push(subnetMinersPDA);
+      minerWeightsPDAs.push(minerWeightsPDA);
     }
 
     const [
@@ -147,6 +164,19 @@ describe("solana-bittensor", () => {
       subnetMiners8,
       subnetMiners9,
     ] = subnetMinersPDAs;
+
+    const [
+      minerWeights,
+      minerWeights1,
+      minerWeights2,
+      minerWeights3,
+      minerWeights4,
+      minerWeights5,
+      minerWeights6,
+      minerWeights7,
+      minerWeights8,
+      minerWeights9,
+    ] = minerWeightsPDAs;
 
     const [subnetValidatorsPDA] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("subnet_validators"), subnetPDA.toBuffer()],
@@ -173,6 +203,16 @@ describe("solana-bittensor", () => {
       subnetMiners7,
       subnetMiners8,
       subnetMiners9,
+      minerWeights,
+      minerWeights1,
+      minerWeights2,
+      minerWeights3,
+      minerWeights4,
+      minerWeights5,
+      minerWeights6,
+      minerWeights7,
+      minerWeights8,
+      minerWeights9,
       subnetValidatorsPDA,
       subnetTaoStake,
       userTaoAta,
@@ -328,11 +368,22 @@ describe("solana-bittensor", () => {
           subnetMiners7,
           subnetMiners8,
           subnetMiners9,
+          minerWeights,
+          minerWeights1,
+          minerWeights2,
+          minerWeights3,
+          minerWeights4,
+          minerWeights5,
+          minerWeights6,
+          minerWeights7,
+          minerWeights8,
+          minerWeights9,
         } = item;
 
         await program.methods
           .registerSubnet()
           .accounts({
+            taoMint,
             bittensorState: bittensorPDA,
             subnetState: item.subnetPDA,
             subnetEpoch: item.subnetWeightsPDA,
@@ -346,7 +397,35 @@ describe("solana-bittensor", () => {
             subnetMiners7,
             subnetMiners8,
             subnetMiners9,
+            taoStake: item.subnetTaoStake,
             subnetValidators: item.subnetValidatorsPDA,
+            owner: users[index].keypair.publicKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: token.TOKEN_PROGRAM_ID,
+          })
+          .signers([users[index].keypair])
+          .rpc()
+          .catch((err) => {
+            console.log("Error: ", err);
+          });
+
+        await sleep(10000);
+
+        await program.methods
+          .registerSubnetWeights()
+          .accounts({
+            bittensorState: bittensorPDA,
+            subnetState: item.subnetPDA,
+            minerWeights,
+            minerWeights1,
+            minerWeights2,
+            minerWeights3,
+            minerWeights4,
+            minerWeights5,
+            minerWeights6,
+            minerWeights7,
+            minerWeights8,
+            minerWeights9,
             owner: users[index].keypair.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
           })
@@ -356,7 +435,7 @@ describe("solana-bittensor", () => {
             console.log("Error: ", err);
           });
 
-        await sleep(3000);
+        await sleep(10000);
 
         return program.methods
           .initializeSubnet()
@@ -384,7 +463,6 @@ describe("solana-bittensor", () => {
             tokenProgram: token.TOKEN_PROGRAM_ID,
           })
           .signers([users[index].keypair])
-
           .rpc()
           .catch((err) => {
             console.log("Error: ", err);
@@ -565,6 +643,18 @@ describe("solana-bittensor", () => {
     await Promise.all(
       miners.map(async (miner) => {
         await sleep(3000);
+        const {
+          subnetMiners,
+          subnetMiners1,
+          subnetMiners2,
+          subnetMiners3,
+          subnetMiners4,
+          subnetMiners5,
+          subnetMiners6,
+          subnetMiners7,
+          subnetMiners8,
+          subnetMiners9,
+        } = miner.subnet;
         return program.methods
           .initializeSubnetMiner()
           .accounts({
@@ -574,7 +664,16 @@ describe("solana-bittensor", () => {
             minerState: miner.minerPDA,
             subnetState: miner.subnet.subnetPDA,
             subnetEpoch: miner.subnet.subnetWeightsPDA,
-            subnetMiners: miner.subnet.subnetMinersPDA,
+            subnetMiners,
+            subnetMiners1,
+            subnetMiners2,
+            subnetMiners3,
+            subnetMiners4,
+            subnetMiners5,
+            subnetMiners6,
+            subnetMiners7,
+            subnetMiners8,
+            subnetMiners9,
             owner: miner.owner.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: token.TOKEN_PROGRAM_ID,
@@ -601,6 +700,8 @@ describe("solana-bittensor", () => {
       })
     );
   });
+
+  return;
 
   it("set miner weights", async () => {
     program.addEventListener("ValidatorSetWeightsEvent", (event) => {

@@ -1,6 +1,8 @@
 use super::{MAX_VALIDATOR_NUMBER, VALIDATOR_PROTECTION};
 use anchor_lang::prelude::*;
 
+
+// TODO: 每个周期结束 更新验证人已经使用的权重
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
 #[derive(Debug)]
@@ -71,6 +73,7 @@ pub struct ValidatorInfo {
     // 保护期
     pub protection: u64,
     pub pubkey: Pubkey,
+    pub used_weights: u16,
 }
 
 impl Default for ValidatorInfo {
@@ -83,12 +86,12 @@ impl Default for ValidatorInfo {
             stake: 0,
             bounds: 0,
             reward: 0,
+            used_weights: 0, // max 1000
             protection: VALIDATOR_PROTECTION,
         }
     }
 }
 
 impl ValidatorInfo {
-    pub const LEN: usize = 1 + 32 + 32 + 8 + 8 + 8 + 8; // 89
+    pub const LEN: usize = 1 + 32 + 32 + 8 + 8 + 8 + 8 + 2; // 89
 }
-
