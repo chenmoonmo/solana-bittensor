@@ -13,7 +13,7 @@ pub fn end_epoch_weights(ctx: Context<EndEpochWeights>) -> Result<()> {
 
     // miner_weights 的 miners_weights 字段是一个二维数组，每个元素是一个长度为 32 的数组, 代表一个矿工被验证人所打的分
 
-    for i in 0..100 {
+    for i in 0..MAX_GROUP_MINER_NUMBER {
         let mut weights = miner_weights.miners_weights[i]
             .into_iter()
             .collect::<Vec<u16>>();

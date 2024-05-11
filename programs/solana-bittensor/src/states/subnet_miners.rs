@@ -1,4 +1,4 @@
-use super::{MAX_MINER_NUMBER, MINER_PROTECTION};
+use super::{MAX_GROUP_MINER_NUMBER, MINER_PROTECTION};
 use anchor_lang::prelude::*;
 
 #[account(zero_copy(unsafe))]
@@ -8,7 +8,7 @@ pub struct SubnetMiners {
     pub id: u8,
     pub group_id: u8,
     pub last_miner_id: i8,
-    pub miners: [MinerInfo; 100],
+    pub miners: [MinerInfo; MAX_GROUP_MINER_NUMBER],
 }
 
 impl Default for SubnetMiners {
@@ -18,13 +18,13 @@ impl Default for SubnetMiners {
             id: 0,
             group_id: 0,
             last_miner_id: -1,
-            miners: [MinerInfo::default(); 100],
+            miners: [MinerInfo::default(); MAX_GROUP_MINER_NUMBER],
         }
     }
 }
 
 impl SubnetMiners {
-    pub const LEN: usize = 1 + 1 + 1 + MAX_MINER_NUMBER * MinerInfo::LEN; // 1 + 1 + 32 * 89 = 2849 10240kb
+    pub const LEN: usize = 1 + 1 + 1 + MAX_GROUP_MINER_NUMBER * MinerInfo::LEN; // 1 + 1 + 32 * 89 = 2849 10240kb
 
     pub fn create_miner(&mut self, owner: Pubkey, pubkey: Pubkey) -> u8 {
         let id = (self.last_miner_id + 1) as u8;

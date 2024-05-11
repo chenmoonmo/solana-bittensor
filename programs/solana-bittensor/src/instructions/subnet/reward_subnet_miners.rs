@@ -15,7 +15,7 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
 
     let epoch_total_weights = ctx.accounts.subnet_state.epoch_total_weights;
 
-    for i in 0..100 {
+    for i in 0..MAX_GROUP_MINER_NUMBER {
         let weight = miner_weights.miner_total_weights[i];
         let reward = weight * ctx.accounts.subnet_state.distribute_reward / epoch_total_weights;
         subnet_miners.miners[i].reward += reward;
