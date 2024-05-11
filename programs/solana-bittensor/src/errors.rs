@@ -28,4 +28,6 @@ pub enum ErrorCode {
     EpochIsEnded,
     #[msg("Invalid end step.")]
     InvalidEndStep,
+    #[msg("Invalid miner group id.")]
+    InvalidMinerGroupId
 }

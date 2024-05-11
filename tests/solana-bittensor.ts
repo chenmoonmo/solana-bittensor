@@ -10,7 +10,6 @@ interface User {
 
 interface Subnet {
   subnetPDA: anchor.web3.PublicKey;
-  subnetWeightsPDA: anchor.web3.PublicKey;
   subnetMiners: anchor.web3.PublicKey;
   subnetMiners1: anchor.web3.PublicKey;
   subnetMiners2: anchor.web3.PublicKey;
@@ -25,7 +24,7 @@ interface Subnet {
   minerWeights1: anchor.web3.PublicKey;
   minerWeights2: anchor.web3.PublicKey;
   minerWeights3: anchor.web3.PublicKey;
-  minerWeights4: anchor.web3.PublicKey; 
+  minerWeights4: anchor.web3.PublicKey;
   minerWeights5: anchor.web3.PublicKey;
   minerWeights6: anchor.web3.PublicKey;
   minerWeights7: anchor.web3.PublicKey;
@@ -192,7 +191,6 @@ describe("solana-bittensor", () => {
 
     return {
       subnetPDA,
-      subnetWeightsPDA,
       subnetMiners,
       subnetMiners1,
       subnetMiners2,
@@ -380,13 +378,32 @@ describe("solana-bittensor", () => {
           minerWeights9,
         } = item;
 
-        await program.methods
+        program.methods
           .registerSubnet()
           .accounts({
             taoMint,
             bittensorState: bittensorPDA,
             subnetState: item.subnetPDA,
-            subnetEpoch: item.subnetWeightsPDA,
+            taoStake: item.subnetTaoStake,
+            // subnetValidators: item.subnetValidatorsPDA,
+            owner: users[index].keypair.publicKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: token.TOKEN_PROGRAM_ID,
+          })
+          .signers([users[index].keypair])
+          .rpc()
+          .catch((err) => {
+            console.log("Error: ", err);
+          });
+
+        await sleep(10000);
+
+        await program.methods
+          .registerSubnetMiners()
+          .accounts({
+            bittensorState: bittensorPDA,
+            subnetState: item.subnetPDA,
+            subnetValidators: item.subnetValidatorsPDA,
             subnetMiners,
             subnetMiners1,
             subnetMiners2,
@@ -397,11 +414,8 @@ describe("solana-bittensor", () => {
             subnetMiners7,
             subnetMiners8,
             subnetMiners9,
-            taoStake: item.subnetTaoStake,
-            subnetValidators: item.subnetValidatorsPDA,
             owner: users[index].keypair.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
-            tokenProgram: token.TOKEN_PROGRAM_ID,
           })
           .signers([users[index].keypair])
           .rpc()
@@ -444,7 +458,6 @@ describe("solana-bittensor", () => {
             subnetState: item.subnetPDA,
             bittensorState: bittensorPDA,
             bittensorEpoch: bittensorEpochPDA,
-            subnetEpoch: item.subnetWeightsPDA,
             subnetMiners,
             subnetMiners1,
             subnetMiners2,
@@ -525,7 +538,6 @@ describe("solana-bittensor", () => {
             validatorState: validator.validatorPDA,
             taoStake: validator.subnet.subnetTaoStake,
             subnetState: validator.subnet.subnetPDA,
-            subnetEpoch: validator.subnet.subnetWeightsPDA,
             subnetValidators: validator.subnet.subnetValidatorsPDA,
             owner: validator.owner.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
@@ -617,7 +629,6 @@ describe("solana-bittensor", () => {
         validatorState: newValidator.validatorPDA,
         taoStake: newValidator.subnet.subnetTaoStake,
         subnetState: newValidator.subnet.subnetPDA,
-        subnetEpoch: newValidator.subnet.subnetWeightsPDA,
         subnetValidators: newValidator.subnet.subnetValidatorsPDA,
         owner: newValidator.owner.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -663,7 +674,6 @@ describe("solana-bittensor", () => {
             userTaoAta: miner.taoATA,
             minerState: miner.minerPDA,
             subnetState: miner.subnet.subnetPDA,
-            subnetEpoch: miner.subnet.subnetWeightsPDA,
             subnetMiners,
             subnetMiners1,
             subnetMiners2,

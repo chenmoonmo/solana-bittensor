@@ -3,7 +3,6 @@ use anchor_lang::prelude::*;
 
 pub const MAX_WEIGHT: u16 = 1000;
 
-
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
 #[derive(Debug)]
@@ -27,7 +26,7 @@ impl Default for MinerWeights {
 }
 
 impl MinerWeights {
-    pub const LEN: usize = 1 + 2 * 100 * MAX_VALIDATOR_NUMBER + 8 * 100; // 2 * 100 * 32 = 6400
+    pub const LEN: usize = 1 + 1 + 2 * 100 * MAX_VALIDATOR_NUMBER + 8 * 100; // 2 * 100 * 32 = 6400
 
     pub fn set_weights(&mut self, validator_id: u8, weights: &Vec<u16>) -> () {
         // 将 Vec<u64> 转换为 [u64; 100]

@@ -20,10 +20,11 @@ pub struct SubnetState {
     pub epoch_number: u64,
     pub epoch_start_timestamp: i64,
     pub end_step: u8,
+    pub epoch_total_weights: u64,
 }
 
 impl SubnetState {
-    pub const LEN: usize = 1 + 32 * 10 + 32 * 10 + 32 + 8 + 8 + 8 + 8 + 1; // 1 + 32 * 32 + 32 * 10 + 32 + 32 + 8 + 8 + 8 + 8 + 1 = 738
+    pub const LEN: usize = 1 + 32 * 10 + 32 * 10 + 32 + 8 + 8 + 8 + 8 + 8 + 1; // 1 + 32 * 32 + 32 * 10 + 32 + 32 + 8 + 8 + 8 + 8 + 1 = 738
     pub fn register(&mut self, owner: Pubkey) -> () {
         self.owner = owner;
     }

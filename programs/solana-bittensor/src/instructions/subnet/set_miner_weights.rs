@@ -51,11 +51,7 @@ pub struct SetMinerWeights<'info> {
     pub subnet_validators: AccountLoader<'info, SubnetValidators>,
 
     /// 验证者每次只能给一个矿工组进行打分
-    #[account(
-        mut,
-        seeds = [b"miner_weights 0",subnet_state.key().as_ref()],
-        bump
-    )]
+    #[account(mut)]
     pub miner_weights: AccountLoader<'info, MinerWeights>,
 
     #[account(mut)]

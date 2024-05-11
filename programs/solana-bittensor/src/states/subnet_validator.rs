@@ -26,7 +26,7 @@ impl Default for SubnetValidators {
 }
 
 impl SubnetValidators {
-    pub const LEN: usize = 1 + 1 + MAX_VALIDATOR_NUMBER * ValidatorInfo::LEN; // 1 + 1 + 32 * 89 = 2849
+    pub const LEN: usize = 1 + 1 + MAX_VALIDATOR_NUMBER * ValidatorInfo::LEN; // 3170
     pub fn create_validator(&mut self, owner: Pubkey, pubkey: Pubkey, stake: u64) -> u8 {
         let id = (self.last_validator_id + 1) as u8;
         self.validators[id as usize].id = id;
@@ -63,7 +63,9 @@ impl SubnetValidators {
 #[derive(Debug)]
 pub struct ValidatorInfo {
     pub id: u8,
+    pub used_weights: u16,
     pub owner: Pubkey,
+    pub pubkey: Pubkey,
     // 质押数量
     pub stake: u64,
     // 上一个周期的工作量
@@ -72,8 +74,6 @@ pub struct ValidatorInfo {
     pub reward: u64,
     // 保护期
     pub protection: u64,
-    pub pubkey: Pubkey,
-    pub used_weights: u16,
 }
 
 impl Default for ValidatorInfo {
@@ -93,5 +93,5 @@ impl Default for ValidatorInfo {
 }
 
 impl ValidatorInfo {
-    pub const LEN: usize = 1 + 32 + 32 + 8 + 8 + 8 + 8 + 2; // 89
+    pub const LEN: usize = 1 + 2 + 32 + 32 + 8 + 8 + 8 + 8; // 99
 }

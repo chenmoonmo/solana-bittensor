@@ -35,9 +35,8 @@ pub fn end_epoch_weights(ctx: Context<EndEpochWeights>) -> Result<()> {
         }
 
         miner_weights.miner_total_weights[i] = total_weights;
+        ctx.accounts.subnet_state.epoch_total_weights += total_weights;
     }
-
-    // TODO: 将质押运算后的总和加到 epoch 或者什么里
 
     miner_weights.is_end = true;
 
@@ -48,11 +47,8 @@ pub fn end_epoch_weights(ctx: Context<EndEpochWeights>) -> Result<()> {
 pub struct EndEpochWeights<'info> {
     #[account(mut)]
     pub subnet_state: Box<Account<'info, SubnetState>>,
-    #[account(
-            mut,
-            seeds = [b"miner_weights 0",subnet_state.key().as_ref()],
-            bump
-        )]
+
+    #[account(mut)]
     pub miner_weights: AccountLoader<'info, MinerWeights>,
 
     #[account(
