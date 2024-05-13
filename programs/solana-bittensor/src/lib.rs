@@ -44,7 +44,6 @@ pub mod solana_bittensor {
     ) -> Result<()> {
         instructions::initialize_subnet_validator(ctx, stake_amount)
     }
-    
 
     // 注册子网矿工
     pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()> {
@@ -64,7 +63,7 @@ pub mod solana_bittensor {
     pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
         instructions::validator_stake(ctx, amount)
     }
-    
+
     // 4. 验证人提取质押
     pub fn validator_unstakes(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
         instructions::validator_unstake(ctx, amount)
@@ -101,6 +100,15 @@ pub mod solana_bittensor {
     // pub fn end_subnet_epoch(ctx: Context<EndSubnetEpoch>) -> Result<()> {
     //     instructions::end_subnet_epoch(ctx)
     // }
+
+    pub fn end_epoch_weights(ctx: Context<EndEpochWeights>) -> Result<()> {
+        instructions::end_epoch_weights(ctx)
+    }
+
+    pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
+        instructions::reward_subnet_miners(ctx)
+    }
+
     // 8. 矿工提取奖励
     pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
         instructions::miner_reward(ctx)

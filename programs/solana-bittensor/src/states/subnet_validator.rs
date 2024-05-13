@@ -1,7 +1,6 @@
 use super::{MAX_VALIDATOR_NUMBER, VALIDATOR_PROTECTION};
 use anchor_lang::prelude::*;
 
-
 // TODO: 每个周期结束 更新验证人已经使用的权重
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
@@ -57,6 +56,12 @@ impl SubnetValidators {
         }
         return 0;
     }
+
+    pub fn end_epoch(&mut self) -> () {
+        for i in 0..=self.last_validator_id as usize {
+            self.validators[i].reset_used_weights();
+        }
+    }
 }
 #[zero_copy(unsafe)]
 #[repr(packed)]
@@ -94,4 +99,8 @@ impl Default for ValidatorInfo {
 
 impl ValidatorInfo {
     pub const LEN: usize = 1 + 2 + 32 + 32 + 8 + 8 + 8 + 8; // 99
+
+    pub fn reset_used_weights(&mut self) -> () {
+        self.used_weights = 0;
+    }
 }

@@ -20,8 +20,8 @@ pub struct SubnetState {
     pub distribute_reward: u64,
     pub epoch_number: u64,
     pub epoch_start_timestamp: i64,
-    pub end_step: u8,
     pub epoch_total_weights: u64,
+    pub weights_staus: [u8; 10],
 }
 
 impl SubnetState {
@@ -32,5 +32,12 @@ impl SubnetState {
 
     pub fn initialize(&mut self, id: u8) -> () {
         self.id = id;
+    }
+
+    pub fn end_epoch(&mut self, timestamp: i64) -> () {
+        self.epoch_number += 1;
+        self.epoch_start_timestamp = timestamp;
+        self.epoch_total_weights = 0;
+        self.weights_staus = [0; 10];
     }
 }

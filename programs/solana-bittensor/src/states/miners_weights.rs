@@ -9,9 +9,9 @@ pub const MAX_WEIGHT: u16 = 1000;
 #[derive(Debug)]
 pub struct MinerWeights {
     pub miner_group_id: u8,
+    pub end_step: u8,
     pub miners_weights: [[u16; MAX_VALIDATOR_NUMBER]; MAX_GROUP_MINER_NUMBER],
     pub miner_total_weights: [u64; MAX_GROUP_MINER_NUMBER],
-    pub is_end: bool,
 }
 
 impl Default for MinerWeights {
@@ -19,9 +19,9 @@ impl Default for MinerWeights {
     fn default() -> Self {
         MinerWeights {
             miner_group_id: 0,
+            end_step: 0,
             miners_weights: [[0; MAX_VALIDATOR_NUMBER]; MAX_GROUP_MINER_NUMBER],
             miner_total_weights: [0; MAX_GROUP_MINER_NUMBER],
-            is_end: false,
         }
     }
 }
@@ -41,5 +41,11 @@ impl MinerWeights {
         for i in 0..MAX_GROUP_MINER_NUMBER {
             self.miners_weights[i][validator_id as usize] = 0;
         }
+    }
+
+    pub fn end_epoch(&mut self) -> () {
+        self.miner_total_weights = [0; MAX_GROUP_MINER_NUMBER];
+        self.miners_weights = [[0; MAX_VALIDATOR_NUMBER]; MAX_GROUP_MINER_NUMBER];
+        self.end_step = 0;
     }
 }
