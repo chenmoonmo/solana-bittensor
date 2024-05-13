@@ -21,7 +21,7 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
     let owner = ctx.accounts.owner.key();
     let pubkey = ctx.accounts.miner_state.key();
 
-    let bump = ctx.bumps.bittensor_state;
+    let bump = ctx.bumps.subnet_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
 
     // 燃烧注册费用
@@ -40,7 +40,6 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
 
     let mut event = MinerRegisterEvent {
         id: 0,
-        subnet_id: subnet_state.id,
         owner,
         stake: 0,
         pubkey,
@@ -68,9 +67,7 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
 
             event.id = miner_id;
 
-            ctx.accounts
-                .miner_state
-                .initialize(miner_id, subnet_state.id, owner);
+            ctx.accounts.miner_state.initialize(miner_id, owner);
         }
         None => {
             // 如果没找到，则从全部的矿工组中淘汰一个得分最低的矿工
@@ -96,7 +93,6 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
                     event.id = min_miner.id;
 
                     ctx.accounts.miner_state.id = min_miner.id;
-                    ctx.accounts.miner_state.subnet_id = subnet_state.id;
                     ctx.accounts.miner_state.owner = owner;
 
                     min_miner.stake = 0;
@@ -123,12 +119,9 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
 pub struct InitializeSubnetMiner<'info> {
     #[account(
         mut,
-        seeds = [b"bittensor"],
+        seeds = [b"subnet_state"],
         bump,
     )]
-    pub bittensor_state: AccountLoader<'info, BittensorState>,
-
-    #[account(mut)]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
@@ -213,7 +206,7 @@ pub struct InitializeSubnetMiner<'info> {
     // 系统奖励代币
     #[account(
             mut,
-            seeds = [b"tao", bittensor_state.key().as_ref()], 
+            seeds = [b"tao", subnet_state.key().as_ref()], 
             bump,
         )]
     pub tao_mint: Box<Account<'info, Mint>>,

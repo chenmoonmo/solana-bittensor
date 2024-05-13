@@ -34,10 +34,10 @@ pub fn register_subnet_miners(ctx: Context<RegisterSubnetMiners>) -> Result<()> 
 pub struct RegisterSubnetMiners<'info> {
     #[account(
         mut,
-        seeds = [b"bittensor"],
-        bump,
+        seeds = [b"subnet_state"],
+        bump
     )]
-    pub bittensor_state: AccountLoader<'info, BittensorState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
         init,
@@ -47,13 +47,6 @@ pub struct RegisterSubnetMiners<'info> {
         bump
     )]
     pub subnet_validators: AccountLoader<'info, SubnetValidators>,
-
-    #[account(
-        mut,
-        seeds = [b"subnet_state",owner.key().as_ref()],
-        bump
-    )]
-    pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
         init,

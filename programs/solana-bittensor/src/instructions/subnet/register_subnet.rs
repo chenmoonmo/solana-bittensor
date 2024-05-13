@@ -3,7 +3,6 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 pub fn register_subnet(ctx: Context<RegisterSubnet>) -> Result<()> {
-
     ctx.accounts.subnet_state.register(ctx.accounts.owner.key());
 
     Ok(())
@@ -12,27 +11,23 @@ pub fn register_subnet(ctx: Context<RegisterSubnet>) -> Result<()> {
 #[derive(Accounts)]
 pub struct RegisterSubnet<'info> {
     #[account(
-        mut,
-        seeds = [b"bittensor"],
-        bump,
-    )]
-    pub bittensor_state: AccountLoader<'info, BittensorState>,
-
-    #[account(
         init,
         payer = owner,
         space = 8 + SubnetState::LEN,
-        seeds = [b"subnet_state",owner.key().as_ref()],
+        seeds = [b"subnet_state"],
         bump
     )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 
     // 系统奖励代币
     #[account(
-            mut,
-            seeds = [b"tao", bittensor_state.key().as_ref()], 
-            bump,
-        )]
+        init,
+        payer = owner,
+        seeds = [b"tao", subnet_state.key().as_ref()], 
+        bump,
+        mint::decimals = 9,
+        mint::authority = subnet_state
+     )]
     pub tao_mint: Box<Account<'info, Mint>>,
 
     // 质押代币存储账户
@@ -42,7 +37,7 @@ pub struct RegisterSubnet<'info> {
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,
-        token::authority = bittensor_state
+        token::authority = subnet_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
 

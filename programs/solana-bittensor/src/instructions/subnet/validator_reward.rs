@@ -18,7 +18,7 @@ pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
 
     let amount = validator.reward;
 
-    let bump = ctx.bumps.bittensor_state;
+    let bump = ctx.bumps.subnet_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
 
     token::mint_to(
@@ -27,7 +27,7 @@ pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
             MintTo {
                 mint: ctx.accounts.tao_mint.to_account_info(),
                 to: ctx.accounts.user_tao_ata.to_account_info(),
-                authority: ctx.accounts.bittensor_state.to_account_info(),
+                authority: ctx.accounts.subnet_state.to_account_info(),
             },
         )
         .with_signer(&[pda_sign]),
@@ -50,12 +50,9 @@ pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
 pub struct ValidatorReward<'info> {
     #[account(
         mut,
-        seeds = [b"bittensor"],
-        bump,
+        seeds = [b"subnet_state"],
+        bump
     )]
-    pub bittensor_state: AccountLoader<'info, BittensorState>,
-
-    #[account(mut)]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
@@ -80,7 +77,7 @@ pub struct ValidatorReward<'info> {
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,
-        token::authority = bittensor_state
+        token::authority = subnet_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
 

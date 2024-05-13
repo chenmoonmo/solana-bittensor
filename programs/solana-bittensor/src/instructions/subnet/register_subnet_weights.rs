@@ -19,14 +19,7 @@ pub fn register_subnet_weights(ctx: Context<RegisterSubnetWeights>) -> Result<()
 pub struct RegisterSubnetWeights<'info> {
     #[account(
         mut,
-        seeds = [b"bittensor"],
-        bump,
-    )]
-    pub bittensor_state: AccountLoader<'info, BittensorState>,
-
-    #[account(
-        mut,
-        seeds = [b"subnet_state",owner.key().as_ref()],
+        seeds = [b"subnet_state"],
         bump
     )]
     pub subnet_state: Box<Account<'info, SubnetState>>,

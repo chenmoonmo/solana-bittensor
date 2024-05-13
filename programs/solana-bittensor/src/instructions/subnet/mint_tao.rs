@@ -7,7 +7,7 @@ use anchor_spl::{
 use crate::states::*;
 
 pub fn mint_tao(ctx: Context<MintTao>) -> Result<()> {
-    let bump = ctx.bumps.bittensor_state;
+    let bump = ctx.bumps.subnet_state;
     let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
 
     token::mint_to(
@@ -16,7 +16,7 @@ pub fn mint_tao(ctx: Context<MintTao>) -> Result<()> {
             MintTo {
                 mint: ctx.accounts.tao_mint.to_account_info(),
                 to: ctx.accounts.user_tao_ata.to_account_info(),
-                authority: ctx.accounts.bittensor_state.to_account_info(),
+                authority: ctx.accounts.subnet_state.to_account_info(),
             },
         )
         .with_signer(&[pda_sign]),
@@ -29,15 +29,15 @@ pub fn mint_tao(ctx: Context<MintTao>) -> Result<()> {
 pub struct MintTao<'info> {
     #[account(
         mut,
-        seeds = [b"bittensor"],
-        bump
+        seeds = [b"subnet_state"],
+        bump,
     )]
-    pub bittensor_state: AccountLoader<'info, BittensorState>,
+    pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
         mut,
         constraint = user_tao_ata.mint == tao_mint.key(),
-        seeds = [b"tao", bittensor_state.key().as_ref()], 
+        seeds = [b"tao", subnet_state.key().as_ref()], 
         bump
     )]
     pub tao_mint: Account<'info, Mint>,

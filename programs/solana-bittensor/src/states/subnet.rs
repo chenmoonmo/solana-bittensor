@@ -12,7 +12,6 @@ pub const VALIDATOR_PROTECTION: u64 = 1;
 #[account]
 #[derive(Default, Debug)]
 pub struct SubnetState {
-    pub id: u8,
     pub owner: Pubkey,
     pub miners: [Pubkey; 10],
     pub validators: Pubkey,
@@ -29,11 +28,7 @@ impl SubnetState {
     pub fn register(&mut self, owner: Pubkey) -> () {
         self.owner = owner;
     }
-
-    pub fn initialize(&mut self, id: u8) -> () {
-        self.id = id;
-    }
-
+    
     pub fn end_epoch(&mut self, timestamp: i64) -> () {
         self.epoch_number += 1;
         self.epoch_start_timestamp = timestamp;
