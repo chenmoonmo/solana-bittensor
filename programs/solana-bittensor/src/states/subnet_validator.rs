@@ -1,7 +1,6 @@
 use super::{MAX_VALIDATOR_NUMBER, VALIDATOR_PROTECTION};
 use anchor_lang::prelude::*;
 
-// TODO: 每个周期结束 更新验证人已经使用的权重
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
 #[derive(Debug)]

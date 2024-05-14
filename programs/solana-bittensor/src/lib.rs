@@ -23,11 +23,6 @@ pub mod solana_bittensor {
         instructions::register_subnet_weights(ctx)
     }
 
-    // 注册子网
-    pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
-        instructions::initialize_subnet(ctx)
-    }
-
     // 测试用 mint
     pub fn mint(ctx: Context<MintTao>) -> Result<()> {
         instructions::mint_tao(ctx)
@@ -45,7 +40,6 @@ pub mod solana_bittensor {
     pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()> {
         instructions::initialize_subnet_miner(ctx)
     }
-
 
     // 3. 验证人质押
     pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
@@ -66,6 +60,10 @@ pub mod solana_bittensor {
 
     pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
         instructions::reward_subnet_miners(ctx)
+    }
+
+    pub fn reward_subnet_validators(ctx: Context<RewardSubnetValidators>) -> Result<()> {
+        instructions::reward_subnet_validators(ctx)
     }
 
     // 8. 矿工提取奖励

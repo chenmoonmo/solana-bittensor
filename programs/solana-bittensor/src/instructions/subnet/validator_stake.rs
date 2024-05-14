@@ -51,7 +51,7 @@ pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()
         .validator_remove_stake(validator.id, amount);
 
     let bump = ctx.bumps.subnet_state;
-    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+    let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     token::transfer(
         CpiContext::new(
@@ -88,7 +88,7 @@ pub struct ValidatorStake<'info> {
 
     #[account(
         mut,
-        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
+        seeds = [b"subnet_validators",subnet_state.key().as_ref()],
         bump
     )]
     pub subnet_validators: AccountLoader<'info, SubnetValidators>,

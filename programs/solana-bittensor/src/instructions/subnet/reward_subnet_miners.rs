@@ -12,7 +12,7 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
             .subnet_state
             .weights_staus
             .into_iter()
-            .all(|i| i == 2),
+            .all(|i| i >= 2),
         ErrorCode::InvalidEndStep
     );
 
@@ -36,10 +36,9 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
 
         subnet_miners.miners[i].reward += reward;
     }
+    
+    ctx.accounts.subnet_state.weights_staus[subnet_miners.group_id as usize] = 3;
 
-    ctx.accounts.subnet_state.weights_staus[ctx.accounts.subnet_miners.load()?.group_id as usize] =
-        3;
-        
     miner_weights.end_epoch();
 
     Ok(())
@@ -47,8 +46,19 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct RewardSubnetMiners<'info> {
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [b"subnet_state"],
+        bump
+    )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
+
+    #[account(
+        mut,
+        seeds = [b"subnet_validators",subnet_state.key().as_ref()],
+        bump
+    )]
+    pub subnet_validators: AccountLoader<'info, SubnetValidators>,
 
     #[account(mut)]
     pub subnet_miners: AccountLoader<'info, SubnetMiners>,

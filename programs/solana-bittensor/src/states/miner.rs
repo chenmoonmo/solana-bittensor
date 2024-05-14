@@ -6,15 +6,16 @@ pub struct MinerState {
     pub id: u8,
     pub owner: Pubkey,
     pub stake: u64,
-    // pub rpc: String,
+    pub group_pubkey: Pubkey,
 }
 
 impl MinerState {
-    pub const LEN: usize = 1 + 1 + 32 + 8; // 1 + 1 + 32 + 8 = 42
+    pub const LEN: usize = 1 + 1 + 32 + 8 + 32; // 1 + 1 + 32 + 8 = 42
 
-    pub fn initialize(&mut self, id: u8, owner: Pubkey) -> () {
+    pub fn initialize(&mut self, id: u8, owner: Pubkey, group_pubkey: Pubkey) -> () {
         self.id = id;
         self.owner = owner;
+        self.group_pubkey = group_pubkey;
     }
 
     pub fn add_stake(&mut self, amount: u64) -> () {

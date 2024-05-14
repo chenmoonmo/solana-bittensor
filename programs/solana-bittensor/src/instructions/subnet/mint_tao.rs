@@ -8,7 +8,7 @@ use crate::states::*;
 
 pub fn mint_tao(ctx: Context<MintTao>) -> Result<()> {
     let bump = ctx.bumps.subnet_state;
-    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+    let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     token::mint_to(
         CpiContext::new(

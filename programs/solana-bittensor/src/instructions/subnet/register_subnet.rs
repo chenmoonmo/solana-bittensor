@@ -30,17 +30,6 @@ pub struct RegisterSubnet<'info> {
      )]
     pub tao_mint: Box<Account<'info, Mint>>,
 
-    // 质押代币存储账户
-    #[account(
-        init,
-        payer = owner,
-        seeds=[b"tao_stake", subnet_state.key().as_ref()],
-        bump,
-        token::mint = tao_mint,
-        token::authority = subnet_state
-    )]
-    pub tao_stake: Box<Account<'info, TokenAccount>>,
-
     #[account(mut)]
     pub owner: Signer<'info>,
     pub system_program: Program<'info, System>,

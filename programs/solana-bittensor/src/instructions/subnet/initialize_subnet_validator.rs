@@ -24,7 +24,7 @@ pub fn initialize_subnet_validator(
     );
 
     let bump = ctx.bumps.subnet_state;
-    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+    let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     // 燃烧注册费用
     token::burn(

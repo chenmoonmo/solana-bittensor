@@ -17,12 +17,11 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         ErrorCode::NotEnoughBalance
     );
 
-    let subnet_state = &mut ctx.accounts.subnet_state;
     let owner = ctx.accounts.owner.key();
     let pubkey = ctx.accounts.miner_state.key();
 
     let bump = ctx.bumps.subnet_state;
-    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+    let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     // 燃烧注册费用
     token::burn(
@@ -60,14 +59,31 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         ctx.accounts.subnet_miners9.load_mut()?,
     ]
     .iter_mut()
-    .find(|v| v.last_miner_id < i8::try_from(99).unwrap())
+    .enumerate()
+    .find(|(_, v)| v.last_miner_id < i8::try_from(99).unwrap())
     {
-        Some(miners) => {
+        Some((i, miners)) => {
+            let group_pubkey = [
+                &ctx.accounts.subnet_miners,
+                &ctx.accounts.subnet_miners1,
+                &ctx.accounts.subnet_miners2,
+                &ctx.accounts.subnet_miners3,
+                &ctx.accounts.subnet_miners4,
+                &ctx.accounts.subnet_miners5,
+                &ctx.accounts.subnet_miners6,
+                &ctx.accounts.subnet_miners7,
+                &ctx.accounts.subnet_miners8,
+                &ctx.accounts.subnet_miners9,
+            ][i]
+                .key();
+
             let miner_id = miners.create_miner(owner, pubkey);
 
             event.id = miner_id;
 
-            ctx.accounts.miner_state.initialize(miner_id, owner);
+            ctx.accounts
+                .miner_state
+                .initialize(miner_id, owner, group_pubkey);
         }
         None => {
             // 如果没找到，则从全部的矿工组中淘汰一个得分最低的矿工
@@ -118,7 +134,6 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
 #[derive(Accounts)]
 pub struct InitializeSubnetMiner<'info> {
     #[account(
-        mut,
         seeds = [b"subnet_state"],
         bump,
     )]

@@ -19,7 +19,7 @@ pub fn validator_reward(ctx: Context<ValidatorReward>) -> Result<()> {
     let amount = validator.reward;
 
     let bump = ctx.bumps.subnet_state;
-    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+    let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     token::mint_to(
         CpiContext::new(
@@ -57,7 +57,7 @@ pub struct ValidatorReward<'info> {
 
     #[account(
         mut,
-        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
+        seeds = [b"subnet_validators",subnet_state.key().as_ref()],
         bump
     )]
     pub subnet_validators: AccountLoader<'info, SubnetValidators>,

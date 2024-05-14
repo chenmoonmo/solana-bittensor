@@ -16,7 +16,7 @@ pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
     let amount = miner.reward;
 
     let bump = ctx.bumps.subnet_state;
-    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+    let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     token::mint_to(
         CpiContext::new(
@@ -54,17 +54,13 @@ pub struct MinerReward<'info> {
 
     #[account(
         mut,
-        seeds = [b"subnet_miners",subnet_state.key().as_ref()],
-        bump
-    )]
-    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
-
-    #[account(
-        mut,
         seeds = [b"miner_state",subnet_state.key().as_ref(),owner.key().as_ref()],
         bump
     )]
     pub miner_state: Box<Account<'info, MinerState>>,
+
+    #[account(mut)]
+    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
 
     // 系统奖励代币
     #[account(mut)]
