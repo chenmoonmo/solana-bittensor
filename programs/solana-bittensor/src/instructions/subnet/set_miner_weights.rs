@@ -2,25 +2,38 @@ use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
 
-pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u16>) -> Result<()> {
+pub fn set_miner_weights(
+    ctx: Context<SetMinerWeights>,
+    weights: Vec<u16>,
+    ids: Vec<u32>,
+) -> Result<()> {
+    let subnet_validators = &mut ctx.accounts.subnet_validators.load_mut()?;
+    let validator_id = ctx.accounts.validator_state.id;
     let miner_weights = &mut ctx.accounts.miner_weights.load_mut()?;
 
-    let subnet_validators = &mut ctx.accounts.subnet_validators.load_mut()?;
+    for (i, miner_id) in ids.into_iter().enumerate() {
+        let weight = weights[i];
 
-    let validator_id = ctx.accounts.validator_state.id;
+        let pre_weight = miner_weights.miners_weights[miner_id as usize][validator_id as usize];
+
+        if pre_weight > 0 {
+            subnet_validators.validators[validator_id as usize].used_weights -= pre_weight;
+        }
+
+        miner_weights.miners_weights[miner_id as usize][validator_id as usize] = weight;
+    }
 
     // 限制周期内验证人可以打出的总权重
     let sum_weights = weights.iter().sum::<u16>();
+
     let validator_used_weights = subnet_validators.validators[validator_id as usize].used_weights;
+
+    subnet_validators.validators[validator_id as usize].used_weights += sum_weights;
 
     require!(
         validator_used_weights + sum_weights <= MAX_WEIGHT,
         ErrorCode::TotalWeightExceedsMaxWeight
     );
-
-    miner_weights.set_weights(validator_id, &weights);
-
-    subnet_validators.validators[validator_id as usize].used_weights += sum_weights;
 
     // emit!(ValidatorSetWeightsEvent {
     //     subnet_id: ctx.accounts.subnet_state.id,
@@ -50,7 +63,6 @@ pub struct SetMinerWeights<'info> {
     )]
     pub subnet_validators: AccountLoader<'info, SubnetValidators>,
 
-    /// 验证者每次只能给一个矿工组进行打分
     #[account(mut)]
     pub miner_weights: AccountLoader<'info, MinerWeights>,
 

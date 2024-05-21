@@ -5,18 +5,15 @@ use anchor_lang::prelude::*;
 #[repr(packed)]
 #[derive(Debug)]
 pub struct SubnetValidators {
-    pub id: u8,
     pub last_validator_id: i8,
     pub validators: [ValidatorInfo; MAX_VALIDATOR_NUMBER],
 }
-
 // 10240 - 1 - 1 = x * 89
 
 impl Default for SubnetValidators {
     #[inline]
     fn default() -> Self {
         Self {
-            id: 0,
             last_validator_id: -1,
             validators: [ValidatorInfo::default(); MAX_VALIDATOR_NUMBER],
         }

@@ -11,16 +11,12 @@ declare_id!("7rzTY9ro4qQtnWZg3kkacYsrh9tBcQ6ueuEBi2n5GdsW");
 pub mod solana_bittensor {
     use super::*;
     // 初始化主网
-    pub fn register_subnet(ctx: Context<RegisterSubnet>) -> Result<()> {
-        instructions::register_subnet(ctx)
+    pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
+        instructions::initialize_subnet(ctx)
     }
 
-    pub fn register_subnet_miners(ctx: Context<RegisterSubnetMiners>) -> Result<()> {
-        instructions::register_subnet_miners(ctx)
-    }
-
-    pub fn register_subnet_weights(ctx: Context<RegisterSubnetWeights>) -> Result<()> {
-        instructions::register_subnet_weights(ctx)
+    pub fn increase_miners(_ctx: Context<IncreaseMiners>, _len: u32) -> Result<()> {
+        Ok(())
     }
 
     // 测试用 mint
@@ -46,14 +42,20 @@ pub mod solana_bittensor {
         instructions::validator_stake(ctx, amount)
     }
 
-    // 4. 验证人提取质押
-    pub fn validator_unstakes(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
-        instructions::validator_unstake(ctx, amount)
+    // 给子网矿工打分
+    pub fn set_miner_weights(
+        ctx: Context<SetMinerWeights>,
+        weights: Vec<u16>,
+        ids: Vec<u32>,
+    ) -> Result<()> {
+        instructions::set_miner_weights(ctx, weights, ids)
     }
-    // 7. 给子网矿工打分
-    pub fn set_miner_weights(ctx: Context<SetMinerWeights>, weights: Vec<u16>) -> Result<()> {
-        instructions::set_miner_weights(ctx, weights)
-    }
+
+    // // 4. 验证人提取质押
+    // pub fn validator_unstakes(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> {
+    //     instructions::validator_unstake(ctx, amount)
+    // }
+
     pub fn end_epoch_weights(ctx: Context<EndEpochWeights>) -> Result<()> {
         instructions::end_epoch_weights(ctx)
     }

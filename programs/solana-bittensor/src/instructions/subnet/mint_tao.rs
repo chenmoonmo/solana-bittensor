@@ -50,7 +50,6 @@ pub struct MintTao<'info> {
     pub user_tao_ata: Box<Account<'info, TokenAccount>>,
 
     pub owner: Signer<'info>,
-
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
 }

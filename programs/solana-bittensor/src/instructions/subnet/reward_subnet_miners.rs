@@ -6,40 +6,43 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
     let miner_weights = &mut ctx.accounts.miner_weights.load_mut()?;
     let subnet_miners = &mut ctx.accounts.subnet_miners.load_mut()?;
 
+    let start_index: usize = miner_weights.last_reward_id as usize;
+    let mut end_index: usize = miner_weights.last_reward_id as usize + 50;
+
+    if end_index >= subnet_miners.last_miner_id as usize {
+        end_index = subnet_miners.last_miner_id as usize;
+        miner_weights.end_step = 2;
+    }
+
     // 只有所有的矿工组的打分都被结算了，才能进行奖励
-    require!(
-        ctx.accounts
-            .subnet_state
-            .weights_staus
-            .into_iter()
-            .all(|i| i >= 2),
-        ErrorCode::InvalidEndStep
-    );
-
-    require!(
-        miner_weights.miner_group_id == subnet_miners.group_id,
-        ErrorCode::InvalidMinerGroupId
-    );
-
-    require!(miner_weights.end_step == 2, ErrorCode::InvalidEndStep);
+    // require!(
+    //     ctx.accounts
+    //         .subnet_state
+    //         .weights_staus
+    //         .into_iter()
+    //         .all(|i| i >= 2),
+    //     ErrorCode::InvalidEndStep
+    // );
 
     let epoch_total_weights = ctx.accounts.subnet_state.epoch_total_weights;
 
-    for i in 0..MAX_GROUP_MINER_NUMBER {
+    for i in start_index..end_index {
         let weight = miner_weights.miner_total_weights[i];
 
         let reward = (weight as u128)
-            .checked_mul(10_000_000_000)
+            .checked_mul(MINER_EPOCH_REWARD as u128)
             .unwrap()
             .checked_div(epoch_total_weights as u128)
             .unwrap_or(0) as u64;
 
         subnet_miners.miners[i].reward += reward;
     }
-    
-    ctx.accounts.subnet_state.weights_staus[subnet_miners.group_id as usize] = 3;
 
-    miner_weights.end_epoch();
+    miner_weights.last_reward_id = end_index as u32;
+
+    // ctx.accounts.subnet_state.weights_staus[subnet_miners.group_id as usize] = 3;
+
+    // miner_weights.end_epoch();
 
     Ok(())
 }
@@ -52,13 +55,6 @@ pub struct RewardSubnetMiners<'info> {
         bump
     )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
-
-    #[account(
-        mut,
-        seeds = [b"subnet_validators",subnet_state.key().as_ref()],
-        bump
-    )]
-    pub subnet_validators: AccountLoader<'info, SubnetValidators>,
 
     #[account(mut)]
     pub subnet_miners: AccountLoader<'info, SubnetMiners>,

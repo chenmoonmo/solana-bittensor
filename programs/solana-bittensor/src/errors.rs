@@ -29,5 +29,9 @@ pub enum ErrorCode {
     #[msg("Invalid end step.")]
     InvalidEndStep,
     #[msg("Invalid miner group id.")]
-    InvalidMinerGroupId
+    InvalidMinerGroupId,
+    #[msg("Validator already set weights.")]
+    ValidatorAlreadySetWeights,
+    #[msg("Miner is not match")]
+    MinerNotMatch
 }

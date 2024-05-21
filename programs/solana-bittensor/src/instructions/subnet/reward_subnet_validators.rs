@@ -7,15 +7,6 @@ pub fn reward_subnet_validators(ctx: Context<RewardSubnetValidators>) -> Result<
     let timestamp = Clock::get()?.unix_timestamp;
     let subnet_validators = &mut ctx.accounts.subnet_validators.load_mut()?;
 
-    require!(
-        ctx.accounts
-            .subnet_state
-            .weights_staus
-            .into_iter()
-            .all(|i| i == 3),
-        ErrorCode::InvalidEndStep
-    );
-
     let validator_bounds = subnet_validators
         .validators
         .iter()
@@ -26,7 +17,7 @@ pub fn reward_subnet_validators(ctx: Context<RewardSubnetValidators>) -> Result<
 
     for i in 0..MAX_VALIDATOR_NUMBER {
         let reward = (validator_bounds[i] as u128)
-            .checked_mul(10_000_000_000 as u128)
+            .checked_mul(VALIDATOR_EPOCH_REWARD as u128)
             .unwrap()
             .checked_div(total_bounds as u128)
             .unwrap_or(0) as u64;

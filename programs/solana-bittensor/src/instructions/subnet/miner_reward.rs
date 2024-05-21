@@ -1,3 +1,4 @@
+use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
 
@@ -9,12 +10,14 @@ use anchor_spl::{
 pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
     let miner_id = ctx.accounts.miner_state.id;
 
-    let miners = &mut ctx.accounts.subnet_miners.load_mut()?.miners;
+    let miner = &mut ctx.accounts.subnet_miners.load_mut()?.miners[miner_id as usize];
 
-    let miner = miners.iter_mut().find(|x| x.id == miner_id).unwrap();
+    require!(
+        miner.pubkey == ctx.accounts.miner_state.key(),
+        ErrorCode::MinerNotMatch
+    );
 
     let amount = miner.reward;
-
     let bump = ctx.bumps.subnet_state;
     let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
