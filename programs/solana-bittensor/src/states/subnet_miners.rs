@@ -1,12 +1,12 @@
-use super::MINER_PROTECTION;
+use super::{MAX_MINER_NUMBER, MINER_PROTECTION};
 use anchor_lang::prelude::*;
 
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
 pub struct SubnetMiners {
-    //  8 + (32+8+1+8+8)* 1000 = 85000
+    //  85 * MAX_MINER_NUMBER = 85 * 1000 = 85000 / 10240 = 8.3
     pub last_miner_id: i32,
-    pub miners: [MinerInfo; 1000],
+    pub miners: [MinerInfo; MAX_MINER_NUMBER],
 }
 
 impl Default for SubnetMiners {
@@ -63,5 +63,5 @@ impl Default for MinerInfo {
 }
 
 impl MinerInfo {
-    pub const LEN: usize = 4 + 32 + 32 + 8 + 8 + 1;
+    pub const LEN: usize = 4 + 32 + 32 + 8 + 8 + 1; // = 85
 }

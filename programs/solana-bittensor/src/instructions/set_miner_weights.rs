@@ -11,6 +11,11 @@ pub fn set_miner_weights(
     let validator_id = ctx.accounts.validator_state.id;
     let miner_weights = &mut ctx.accounts.miner_weights.load_mut()?;
 
+    require!(
+        ctx.accounts.subnet_state.end_step == 0,
+        ErrorCode::InvalidEndStep
+    );
+
     for (i, miner_id) in ids.into_iter().enumerate() {
         let weight = weights[i];
 

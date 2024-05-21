@@ -7,6 +7,11 @@ pub fn reward_subnet_validators(ctx: Context<RewardSubnetValidators>) -> Result<
     let timestamp = Clock::get()?.unix_timestamp;
     let subnet_validators = &mut ctx.accounts.subnet_validators.load_mut()?;
 
+    require!(
+        ctx.accounts.subnet_state.end_step == 2,
+        ErrorCode::InvalidEndStep
+    );
+
     let validator_bounds = subnet_validators
         .validators
         .iter()

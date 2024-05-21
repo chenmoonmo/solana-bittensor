@@ -1,6 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
 import * as token from "@solana/spl-token";
-import * as web3 from "@solana/web3.js";
 import { Program } from "@coral-xyz/anchor";
 import { SolanaBittensor } from "../target/types/solana_bittensor";
 
@@ -50,7 +49,6 @@ describe("solana-bittensor", () => {
 
   let bittensorPDA: anchor.web3.PublicKey;
   let taoMint: anchor.web3.PublicKey;
-  let taoStake: anchor.web3.PublicKey;
 
   async function createUser(): Promise<User> {
     const user = anchor.web3.Keypair.generate();
@@ -241,9 +239,18 @@ describe("solana-bittensor", () => {
   });
 
   it("increase miners", async () => {
+    const subnetState = await program.account.subnetState.fetch(
+      subnet.subnetPDA
+    );
+
+    let maxLen = Math.ceil((85 * subnetState.maxMiners) / 10240);
+
+    console.log("maxMiners", subnetState.maxMiners);
+    console.log("maxLen", maxLen);
+
     let len = 2;
 
-    while (len < 11) {
+    while (len <= maxLen) {
       console.log(len * 10240);
       try {
         await program.methods
@@ -566,12 +573,16 @@ describe("solana-bittensor", () => {
 
       await sleep(3000);
 
+      const subnetState = await program.account.subnetState.fetch(
+        subnet.subnetPDA
+      );
+
       const minerWeightsState = await program.account.minerWeights.fetch(
         subnet.minerWeightsPDA
       );
 
       console.log("lastCalculateId", minerWeightsState.lastCalculateId);
-      isEnd = minerWeightsState.endStep === 1;
+      isEnd = subnetState.endStep === 1;
     }
 
     const minerWeights = await program.account.minerWeights.fetch(
@@ -616,13 +627,17 @@ describe("solana-bittensor", () => {
           console.log("Error: ", err);
         });
 
+      const subnetState = await program.account.subnetState.fetch(
+        subnet.subnetPDA
+      );
+
       const minerWeightsState = await program.account.minerWeights.fetch(
         subnet.minerWeightsPDA
       );
 
       console.log("lastRewardId", minerWeightsState.lastRewardId);
 
-      isEnd = minerWeightsState.endStep === 2;
+      isEnd = subnetState.endStep === 2;
     }
 
     subnetMiners = await program.account.subnetMiners.fetch(

@@ -6,23 +6,18 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
     let miner_weights = &mut ctx.accounts.miner_weights.load_mut()?;
     let subnet_miners = &mut ctx.accounts.subnet_miners.load_mut()?;
 
+    require!(
+        ctx.accounts.subnet_state.end_step == 1,
+        ErrorCode::InvalidEndStep
+    );
+
     let start_index: usize = miner_weights.last_reward_id as usize;
     let mut end_index: usize = miner_weights.last_reward_id as usize + 50;
 
     if end_index >= subnet_miners.last_miner_id as usize {
         end_index = subnet_miners.last_miner_id as usize;
-        miner_weights.end_step = 2;
+        ctx.accounts.subnet_state.end_step = 2;
     }
-
-    // 只有所有的矿工组的打分都被结算了，才能进行奖励
-    // require!(
-    //     ctx.accounts
-    //         .subnet_state
-    //         .weights_staus
-    //         .into_iter()
-    //         .all(|i| i >= 2),
-    //     ErrorCode::InvalidEndStep
-    // );
 
     let epoch_total_weights = ctx.accounts.subnet_state.epoch_total_weights;
 
@@ -40,9 +35,6 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
 
     miner_weights.last_reward_id = end_index as u32;
 
-    // ctx.accounts.subnet_state.weights_staus[subnet_miners.group_id as usize] = 3;
-
-    // miner_weights.end_epoch();
 
     Ok(())
 }
