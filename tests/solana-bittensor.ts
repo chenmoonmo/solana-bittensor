@@ -195,7 +195,7 @@ describe("solana-bittensor", () => {
     // airdrop some SOL to the user
     const sig = await connection.requestAirdrop(
       owner.keypair.publicKey,
-      10 * anchor.web3.LAMPORTS_PER_SOL
+      100 * anchor.web3.LAMPORTS_PER_SOL
     );
 
     const latestBlockHash = await connection.getLatestBlockhash();
@@ -279,8 +279,9 @@ describe("solana-bittensor", () => {
     }
 
     let accountInfo = await connection.getAccountInfo(subnet.subnetMiners);
+    let subnetMinersBalance = accountInfo.lamports;
 
-    console.log("Account size: ", accountInfo.data.length);
+    console.log("Account size: ", accountInfo.data.length, subnetMinersBalance);
   });
 
   it("Is initlialized Validator", async () => {

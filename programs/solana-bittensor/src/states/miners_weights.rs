@@ -8,7 +8,7 @@ pub const MAX_WEIGHT: u16 = 1000;
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
 pub struct MinerWeights {
-    // 8 + 1 + 32 + (2 * 32 + 8) * 1000 = 66041  / 10240 = 6.45
+    // 8 + 1 + 32 + (2 * 32 + 8) * 10000  = 720041
     pub miners_weights: [[u16; MAX_VALIDATOR_NUMBER]; MAX_MINER_NUMBER],
     pub miner_total_weights: [u64; MAX_MINER_NUMBER],
     pub validator_status: [bool; MAX_VALIDATOR_NUMBER],
@@ -36,8 +36,3 @@ impl MinerWeights {
         self.validator_status = [false; MAX_VALIDATOR_NUMBER];
     }
 }
-
-// #[derive(Clone, Debug, AnchorSerialize, AnchorDeserialize)]
-// pub struct Weights {
-//     pub data: [u16; MAX_VALIDATOR_NUMBER],
-// }

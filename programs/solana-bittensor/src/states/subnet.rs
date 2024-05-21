@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 pub const MAX_VALIDATOR_NUMBER: usize = 32;
 
 pub const MAX_GROUP_MINER_NUMBER: usize = 100;
-pub const MAX_MINER_NUMBER: usize = 1000;
+pub const MAX_MINER_NUMBER: usize = 10000;
 
 pub const SUBNET_EPOCH_DURATION: i64 = 60 * 60 * 24;
 // 保护期

@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 #[account(zero_copy(unsafe))]
 #[repr(packed)]
 pub struct SubnetMiners {
-    //  85 * MAX_MINER_NUMBER = 85 * 1000 = 85000 / 10240 = 8.3
+    //  85 * MAX_MINER_NUMBER = 4 + 85 * 10000 = 850004
     pub last_miner_id: i32,
     pub miners: [MinerInfo; MAX_MINER_NUMBER],
 }
@@ -14,7 +14,7 @@ impl Default for SubnetMiners {
     fn default() -> Self {
         Self {
             last_miner_id: -1,
-            miners: [MinerInfo::default(); 1000],
+            miners: [MinerInfo::default(); MAX_MINER_NUMBER],
         }
     }
 }
