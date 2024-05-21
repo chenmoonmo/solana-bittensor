@@ -5,18 +5,15 @@ use anchor_lang::prelude::*;
 #[repr(packed)]
 #[derive(Debug)]
 pub struct SubnetValidators {
-    pub id: u8,
     pub last_validator_id: i8,
     pub validators: [ValidatorInfo; MAX_VALIDATOR_NUMBER],
 }
-
 // 10240 - 1 - 1 = x * 89
 
 impl Default for SubnetValidators {
     #[inline]
     fn default() -> Self {
         Self {
-            id: 0,
             last_validator_id: -1,
             validators: [ValidatorInfo::default(); MAX_VALIDATOR_NUMBER],
         }
@@ -24,7 +21,7 @@ impl Default for SubnetValidators {
 }
 
 impl SubnetValidators {
-    pub const LEN: usize = 1 + 1 + MAX_VALIDATOR_NUMBER * ValidatorInfo::LEN; // 1 + 1 + 32 * 89 = 2849
+    pub const LEN: usize = 1 + 1 + MAX_VALIDATOR_NUMBER * ValidatorInfo::LEN; // 3170
     pub fn create_validator(&mut self, owner: Pubkey, pubkey: Pubkey, stake: u64) -> u8 {
         let id = (self.last_validator_id + 1) as u8;
         self.validators[id as usize].id = id;
@@ -55,13 +52,21 @@ impl SubnetValidators {
         }
         return 0;
     }
+
+    pub fn end_epoch(&mut self) -> () {
+        for i in 0..=self.last_validator_id as usize {
+            self.validators[i].reset_used_weights();
+        }
+    }
 }
 #[zero_copy(unsafe)]
 #[repr(packed)]
 #[derive(Debug)]
 pub struct ValidatorInfo {
     pub id: u8,
+    pub used_weights: u16,
     pub owner: Pubkey,
+    pub pubkey: Pubkey,
     // 质押数量
     pub stake: u64,
     // 上一个周期的工作量
@@ -70,7 +75,6 @@ pub struct ValidatorInfo {
     pub reward: u64,
     // 保护期
     pub protection: u64,
-    pub pubkey: Pubkey,
 }
 
 impl Default for ValidatorInfo {
@@ -83,12 +87,16 @@ impl Default for ValidatorInfo {
             stake: 0,
             bounds: 0,
             reward: 0,
+            used_weights: 0, // max 1000
             protection: VALIDATOR_PROTECTION,
         }
     }
 }
 
 impl ValidatorInfo {
-    pub const LEN: usize = 1 + 32 + 32 + 8 + 8 + 8 + 8; // 89
-}
+    pub const LEN: usize = 1 + 2 + 32 + 32 + 8 + 8 + 8 + 8; // 99
 
+    pub fn reset_used_weights(&mut self) -> () {
+        self.used_weights = 0;
+    }
+}

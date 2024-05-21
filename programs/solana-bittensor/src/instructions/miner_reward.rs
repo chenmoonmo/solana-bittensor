@@ -1,3 +1,4 @@
+use crate::errors::ErrorCode;
 use crate::states::*;
 use anchor_lang::prelude::*;
 
@@ -9,14 +10,16 @@ use anchor_spl::{
 pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
     let miner_id = ctx.accounts.miner_state.id;
 
-    let miners = &mut ctx.accounts.subnet_miners.load_mut()?.miners;
+    let miner = &mut ctx.accounts.subnet_miners.load_mut()?.miners[miner_id as usize];
 
-    let miner = miners.iter_mut().find(|x| x.id == miner_id).unwrap();
+    require!(
+        miner.pubkey == ctx.accounts.miner_state.key(),
+        ErrorCode::MinerNotMatch
+    );
 
     let amount = miner.reward;
-
-    let bump = ctx.bumps.bittensor_state;
-    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+    let bump = ctx.bumps.subnet_state;
+    let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     token::mint_to(
         CpiContext::new(
@@ -24,7 +27,7 @@ pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
             MintTo {
                 mint: ctx.accounts.tao_mint.to_account_info(),
                 to: ctx.accounts.user_tao_ata.to_account_info(),
-                authority: ctx.accounts.bittensor_state.to_account_info(),
+                authority: ctx.accounts.subnet_state.to_account_info(),
             },
         )
         .with_signer(&[pda_sign]),
@@ -35,7 +38,6 @@ pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
 
     emit!(MinerClaimRewardEvent {
         id: miner_id,
-        subnet_id: ctx.accounts.subnet_state.id,
         owner: ctx.accounts.owner.key(),
         pubkey: ctx.accounts.user_tao_ata.owner,
         claim_amount: amount,
@@ -48,20 +50,10 @@ pub fn miner_reward(ctx: Context<MinerReward>) -> Result<()> {
 pub struct MinerReward<'info> {
     #[account(
         mut,
-        seeds = [b"bittensor"],
+        seeds = [b"subnet_state"],
         bump,
     )]
-    pub bittensor_state: AccountLoader<'info, BittensorState>,
-
-    #[account(mut)]
     pub subnet_state: Box<Account<'info, SubnetState>>,
-
-    #[account(
-        mut,
-        seeds = [b"subnet_miners",subnet_state.key().as_ref()],
-        bump
-    )]
-    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
 
     #[account(
         mut,
@@ -69,6 +61,9 @@ pub struct MinerReward<'info> {
         bump
     )]
     pub miner_state: Box<Account<'info, MinerState>>,
+
+    #[account(mut)]
+    pub subnet_miners: AccountLoader<'info, SubnetMiners>,
 
     // 系统奖励代币
     #[account(mut)]
@@ -79,7 +74,7 @@ pub struct MinerReward<'info> {
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,
-        token::authority = bittensor_state
+        token::authority = subnet_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
 

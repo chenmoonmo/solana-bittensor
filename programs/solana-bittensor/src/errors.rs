@@ -28,4 +28,10 @@ pub enum ErrorCode {
     EpochIsEnded,
     #[msg("Invalid end step.")]
     InvalidEndStep,
+    #[msg("Invalid miner group id.")]
+    InvalidMinerGroupId,
+    #[msg("Validator already set weights.")]
+    ValidatorAlreadySetWeights,
+    #[msg("Miner is not match")]
+    MinerNotMatch
 }

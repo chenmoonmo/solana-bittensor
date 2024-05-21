@@ -28,11 +28,6 @@ pub fn validator_stake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()> 
         .load_mut()?
         .validator_add_stake(validator_id, amount);
 
-    ctx.accounts
-        .bittensor_state
-        .load_mut()?
-        .validator_add_stake(ctx.accounts.validator_state.key(), amount);
-
     emit!(ValidatorAddStakeEvent {
         id: validator_id,
         owner: ctx.accounts.owner.key(),
@@ -55,13 +50,8 @@ pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()
         .load_mut()?
         .validator_remove_stake(validator.id, amount);
 
-    ctx.accounts
-        .bittensor_state
-        .load_mut()?
-        .validator_remove_stake(pubkey, amount);
-
-    let bump = ctx.bumps.bittensor_state;
-    let pda_sign: &[&[u8]; 2] = &[b"bittensor", &[bump]];
+    let bump = ctx.bumps.subnet_state;
+    let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     token::transfer(
         CpiContext::new(
@@ -69,7 +59,7 @@ pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()
             token::Transfer {
                 from: ctx.accounts.tao_stake.to_account_info(),
                 to: ctx.accounts.user_tao_ata.to_account_info(),
-                authority: ctx.accounts.bittensor_state.to_account_info(),
+                authority: ctx.accounts.subnet_state.to_account_info(),
             },
         )
         .with_signer(&[pda_sign]),
@@ -91,17 +81,14 @@ pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()
 pub struct ValidatorStake<'info> {
     #[account(
         mut,
-        seeds = [b"bittensor"],
+        seeds = [b"subnet_state"],
         bump,
     )]
-    pub bittensor_state: AccountLoader<'info, BittensorState>,
-
-    #[account(mut)]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(
         mut,
-        seeds = [b"subnet_epoch",subnet_state.key().as_ref()],
+        seeds = [b"subnet_validators",subnet_state.key().as_ref()],
         bump
     )]
     pub subnet_validators: AccountLoader<'info, SubnetValidators>,
@@ -123,7 +110,7 @@ pub struct ValidatorStake<'info> {
         seeds=[b"tao_stake", subnet_state.key().as_ref()],
         bump,
         token::mint = tao_mint,
-        token::authority = bittensor_state
+        token::authority = subnet_state
     )]
     pub tao_stake: Box<Account<'info, TokenAccount>>,
 
