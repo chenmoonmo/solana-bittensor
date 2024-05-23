@@ -4,6 +4,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
     ctx.accounts.subnet_state.register(ctx.accounts.owner.key());
+    ctx.accounts.subnet_state.bump = ctx.bumps.subnet_state;
     ctx.accounts.subnet_validators.load_init()?.last_validator_id = -1;
     Ok(())
 }
@@ -84,6 +85,14 @@ pub struct IncreaseMiners<'info> {
     )]
     pub subnet_miners: AccountLoader<'info, SubnetMiners>,
 
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(len: u32)]
+pub struct IncreaseMinerWeights<'info> {
     #[account(
         mut,
         realloc = len as usize, 

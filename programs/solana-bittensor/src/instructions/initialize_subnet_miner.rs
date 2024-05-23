@@ -18,7 +18,7 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
         ErrorCode::NotEnoughBalance
     );
 
-    let bump = ctx.bumps.subnet_state;
+    let bump = ctx.accounts.subnet_state.bump;
     let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     // 燃烧注册费用
@@ -59,7 +59,7 @@ pub fn initialize_subnet_miner(ctx: Context<InitializeSubnetMiner>) -> Result<()
 pub struct InitializeSubnetMiner<'info> {
     #[account(
         seeds = [b"subnet_state"],
-        bump,
+        bump = subnet_state.bump
     )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 

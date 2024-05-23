@@ -50,7 +50,7 @@ pub fn validator_unstake(ctx: Context<ValidatorStake>, amount: u64) -> Result<()
         .load_mut()?
         .validator_remove_stake(validator.id, amount);
 
-    let bump = ctx.bumps.subnet_state;
+    let bump = ctx.accounts.subnet_state.bump;
     let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     token::transfer(
@@ -82,7 +82,7 @@ pub struct ValidatorStake<'info> {
     #[account(
         mut,
         seeds = [b"subnet_state"],
-        bump,
+        bump = subnet_state.bump,
     )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 

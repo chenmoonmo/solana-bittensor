@@ -12,6 +12,7 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
     );
 
     let start_index: usize = miner_weights.last_reward_id as usize;
+    // could be 400
     let mut end_index: usize = miner_weights.last_reward_id as usize + 50;
 
     if end_index >= subnet_miners.last_miner_id as usize {
@@ -35,7 +36,6 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
 
     miner_weights.last_reward_id = end_index as u32;
 
-
     Ok(())
 }
 
@@ -44,7 +44,7 @@ pub struct RewardSubnetMiners<'info> {
     #[account(
         mut,
         seeds = [b"subnet_state"],
-        bump
+        bump = subnet_state.bump,
     )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 
