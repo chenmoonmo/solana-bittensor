@@ -672,6 +672,14 @@ describe("solana-bittensor", () => {
           owner: owner.keypair.publicKey,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
+        .preInstructions([
+          anchor.web3.ComputeBudgetProgram.requestHeapFrame({
+            bytes: 8 * 32 * 1024,
+          }),
+          anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
+            units: 1400_000,
+          }),
+        ])
         .signers([owner.keypair])
         .rpc()
         .catch((err) => {

@@ -3,8 +3,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 pub fn initialize_subnet(ctx: Context<InitializeSubnet>) -> Result<()> {
-    ctx.accounts.subnet_state.register(ctx.accounts.owner.key());
-    ctx.accounts.subnet_state.bump = ctx.bumps.subnet_state;
+    ctx.accounts.subnet_state.register(ctx.bumps.subnet_state, ctx.accounts.owner.key());
     ctx.accounts.subnet_validators.load_init()?.last_validator_id = -1;
     Ok(())
 }

@@ -13,7 +13,7 @@ pub fn reward_subnet_miners(ctx: Context<RewardSubnetMiners>) -> Result<()> {
 
     let start_index: usize = miner_weights.last_reward_id as usize;
     // could be 400
-    let mut end_index: usize = miner_weights.last_reward_id as usize + 50;
+    let mut end_index: usize = miner_weights.last_reward_id as usize + 400;
 
     if end_index >= subnet_miners.last_miner_id as usize {
         end_index = subnet_miners.last_miner_id as usize;

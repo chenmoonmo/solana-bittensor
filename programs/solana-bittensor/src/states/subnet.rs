@@ -43,7 +43,8 @@ impl Default for SubnetState {
 impl SubnetState {
     pub const LEN: usize = 32 + 8 + 8 + 8 + 8 + 8 + 4 + 2;
 
-    pub fn register(&mut self, owner: Pubkey) -> () {
+    pub fn register(&mut self, bump: u8, owner: Pubkey) -> () {
+        self.bump = bump;
         self.owner = owner;
         self.max_miners = MAX_MINER_NUMBER as u32;
     }
