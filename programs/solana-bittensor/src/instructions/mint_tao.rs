@@ -7,7 +7,7 @@ use anchor_spl::{
 use crate::states::*;
 
 pub fn mint_tao(ctx: Context<MintTao>) -> Result<()> {
-    let bump = ctx.bumps.subnet_state;
+    let bump = ctx.accounts.subnet_state.bump;
     let pda_sign: &[&[u8]; 2] = &[b"subnet_state", &[bump]];
 
     token::mint_to(
@@ -30,7 +30,7 @@ pub struct MintTao<'info> {
     #[account(
         mut,
         seeds = [b"subnet_state"],
-        bump,
+        bump = subnet_state.bump,
     )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 

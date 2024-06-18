@@ -8,17 +8,16 @@ pub fn set_miner_weights(
     ids: Vec<u32>,
 ) -> Result<()> {
     let subnet_validators = &mut ctx.accounts.subnet_validators.load_mut()?;
-    let validator_id = ctx.accounts.validator_state.id;
     let miner_weights = &mut ctx.accounts.miner_weights.load_mut()?;
+    let validator_id = ctx.accounts.validator_state.id;
 
     require!(
         ctx.accounts.subnet_state.end_step == 0,
         ErrorCode::InvalidEndStep
     );
 
-    for (i, miner_id) in ids.into_iter().enumerate() {
+    for (i, miner_id) in ids.clone().into_iter().enumerate() {
         let weight = weights[i];
-
         let pre_weight = miner_weights.miners_weights[miner_id as usize][validator_id as usize];
 
         if pre_weight > 0 {
@@ -40,18 +39,22 @@ pub fn set_miner_weights(
         ErrorCode::TotalWeightExceedsMaxWeight
     );
 
-    // emit!(ValidatorSetWeightsEvent {
-    //     subnet_id: ctx.accounts.subnet_state.id,
-    //     validator_id: validator_id,
-    //     weights,
-    // });
+    emit!(ValidatorSetWeightsEvent {
+        validator_id: validator_id,
+        miners: ids,
+        weights,
+    });
 
     Ok(())
 }
 
 #[derive(Accounts)]
 pub struct SetMinerWeights<'info> {
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [b"subnet_state"],
+        bump = subnet_state.bump,
+    )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 
     #[account(

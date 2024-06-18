@@ -34,5 +34,15 @@ impl MinerWeights {
         self.miner_total_weights = [0; MAX_MINER_NUMBER];
         self.miners_weights = [[0; MAX_VALIDATOR_NUMBER]; MAX_MINER_NUMBER];
         self.validator_status = [false; MAX_VALIDATOR_NUMBER];
+        self.last_calculate_id = 0;
+        self.last_reward_id = 0;
     }
+}
+
+#[event]
+#[cfg_attr(feature = "client", derive(Debug))]
+pub struct ValidatorSetWeightsEvent {
+    pub validator_id: u8,
+    pub miners: Vec<u32>,
+    pub weights: Vec<u16>,
 }

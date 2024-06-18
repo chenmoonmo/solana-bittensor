@@ -208,11 +208,12 @@ describe("solana-bittensor", () => {
 
     subnet = generateSubnet(owner);
 
-    users = await Promise.all(
-      new Array(30).fill(0).map(async () => {
-        return createUser();
-      })
-    );
+    for (let i = 0; i < 30; i++) [users.push(await createUser())];
+    // users = await Promise.all(
+    //   new Array(300).fill(0).map(async () => {
+    //     return createUser();
+    //   })
+    // );
 
     await program.methods
       .initializeSubnet()
@@ -232,6 +233,8 @@ describe("solana-bittensor", () => {
       .catch((err) => {
         console.log("Error: ", err);
       });
+
+    // await Promise.all(users.map((user) => createATA(user)));
 
     for (const user of users) {
       await createATA(user);
@@ -282,6 +285,45 @@ describe("solana-bittensor", () => {
     let subnetMinersBalance = accountInfo.lamports;
 
     console.log("Account size: ", accountInfo.data.length, subnetMinersBalance);
+  });
+
+  it("increase miner weights", async () => {
+    const subnetState = await program.account.subnetState.fetch(
+      subnet.subnetPDA
+    );
+
+    let maxLen = Math.ceil((72 * subnetState.maxMiners) / 10240);
+
+    console.log("maxMiners", subnetState.maxMiners);
+    console.log("maxLen", maxLen);
+
+    let len = 2;
+
+    while (len <= maxLen) {
+      console.log(len * 10240);
+      try {
+        await program.methods
+          .increaseMinerWeights(len * 10240)
+          .accounts({
+            minerWeights: subnet.minerWeightsPDA,
+            signer: owner.keypair.publicKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .signers([owner.keypair])
+          .rpc();
+        // 查询 subnetMiners 的lamports
+
+        len += 1;
+      } catch (e) {
+        console.log("Error: ", e);
+      }
+      await sleep(1000);
+    }
+
+    let accountInfo = await connection.getAccountInfo(subnet.minerWeightsPDA);
+    let balance = accountInfo.lamports;
+
+    console.log("Account size: ", accountInfo.data.length, balance);
   });
 
   it("Is initlialized Validator", async () => {
@@ -567,6 +609,14 @@ describe("solana-bittensor", () => {
           subnetValidators: subnet.subnetValidatorsPDA,
           subnetMiners: subnet.subnetMiners,
         })
+        .preInstructions([
+          anchor.web3.ComputeBudgetProgram.requestHeapFrame({
+            bytes: 8 * 32 * 1024,
+          }),
+          anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
+            units: 1400_000,
+          }),
+        ])
         .rpc()
         .catch((err) => {
           console.log("Error: ", err);
@@ -622,6 +672,14 @@ describe("solana-bittensor", () => {
           owner: owner.keypair.publicKey,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
+        .preInstructions([
+          anchor.web3.ComputeBudgetProgram.requestHeapFrame({
+            bytes: 8 * 32 * 1024,
+          }),
+          anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
+            units: 1400_000,
+          }),
+        ])
         .signers([owner.keypair])
         .rpc()
         .catch((err) => {

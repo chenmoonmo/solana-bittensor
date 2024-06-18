@@ -46,7 +46,7 @@ pub struct RewardSubnetValidators<'info> {
     #[account(
         mut,
         seeds = [b"subnet_state"],
-        bump
+        bump = subnet_state.bump,
     )]
     pub subnet_state: Box<Account<'info, SubnetState>>,
 

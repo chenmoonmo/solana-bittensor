@@ -16,6 +16,7 @@ pub const VALIDATOR_EPOCH_REWARD: u64 = 10_000_000_000;
 #[account]
 #[derive(Debug)]
 pub struct SubnetState {
+    pub bump: u8,
     pub owner: Pubkey,
     pub epoch_number: u64,
     pub epoch_start_timestamp: i64,
@@ -28,6 +29,7 @@ impl Default for SubnetState {
     #[inline]
     fn default() -> Self {
         Self {
+            bump: 0,
             owner: Pubkey::default(),
             epoch_number: 0,
             epoch_start_timestamp: 0,
@@ -39,9 +41,10 @@ impl Default for SubnetState {
 }
 
 impl SubnetState {
-    pub const LEN: usize = 32 + 8 + 8 + 8 + 8 + 8 + 4;
+    pub const LEN: usize = 32 + 8 + 8 + 8 + 8 + 8 + 4 + 2;
 
-    pub fn register(&mut self, owner: Pubkey) -> () {
+    pub fn register(&mut self, bump: u8, owner: Pubkey) -> () {
+        self.bump = bump;
         self.owner = owner;
         self.max_miners = MAX_MINER_NUMBER as u32;
     }
